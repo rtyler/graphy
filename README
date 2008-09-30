@@ -1,4 +1,13 @@
+Graphy
+
 Graphy is a chart library for python. It tries to get out of the way and just
 let you work with your data.
 
-http://code.google.com/p/graphy
+The examples in the examples directory assume graphy is in the PYTHONPATH,
+so you might need to invoke them like this:
+  $ cd examples
+  $ PYTHONPATH=.. ./traffic.py
+
+For more information, see http://code.google.com/p/graphy/
+
+For license info, see the LICENSE file.
