@@ -14,78 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Backend which can generate charts using the Google Chart API.
+"""Display objects for the different kinds of charts.
 
-The only thing you should be using out of here are the helper methods:
-  LineChart
-  PieChart
-  Sparkline
-  etc.
-"""
+Not intended for end users, use the methods in __init__ instead."""
 
-import string
-import urllib
-import warnings
+from graphy.backends.google_chart_api import util
 
-from graphy import common
-from graphy import line_chart
-from graphy import bar_chart
-from graphy import pie_chart
-
-
-# TODO: Find a better representation
-_LONG_NAMES = dict(
-  client_id='chc',
-  size='chs',
-  chart_type='cht',
-  axis_type='chxt',
-  axis_label='chxl',
-  axis_position='chxp',
-  axis_range='chxr',
-  axis_style='chxs',
-  data='chd',
-  label='chl',
-  y_label='chly',
-  data_label='chld',
-  data_series_label='chdl',
-  color='chco',
-  extra='chp',
-  right_label='chlr',
-  label_position='chlp',
-  y_label_position='chlyp',
-  right_label_position='chlrp',
-  grid='chg',
-  axis='chx',
-  # This undocumented parameter specifies the length of the tick marks for an
-  # axis. Negative values will extend tick marks into the main graph area.
-  axis_tick_marks='chxtc',
-  line_style='chls',
-  marker='chm',
-  fill='chf',
-  bar_height='chbh',
-  label_color='chlc',
-  signature='sig',
-  output_format='chof',
-  title='chtt',
-  title_style='chts',
-  callback='callback',
-  )
-
-""" Used for parameters which involve joining multiple values."""
-_JOIN_DELIMS = dict(
-  data=',',
-  color=',',
-  line_style='|',
-  marker='|',
-  axis_type=',',
-  axis_range='|',
-  axis_label='|',
-  axis_position='|',
-  axis_tick_marks='|',
-  data_series_label='|',
-  label='|',
-  bar_height=',',
-)
 
 class BaseChartEncoder(object):
 
@@ -121,7 +55,7 @@ class BaseChartEncoder(object):
     self._width = width
     self._height = height
     params = self._Params(self.chart)
-    return _EncodeUrl(self.url_base, params, self.escape_url)
+    return util.EncodeUrl(self.url_base, params, self.escape_url)
 
   def Img(self, width, height):
     """Get an image tag for our graph."""
@@ -152,7 +86,7 @@ class BaseChartEncoder(object):
     chart = chart.GetFormattedChart()
     params = {}
     def Add(new_params):
-      params.update(_ShortenParameterNames(new_params))
+      params.update(util.ShortenParameterNames(new_params))
 
     for formatter in self.formatters:
       Add(formatter(chart))
@@ -195,22 +129,22 @@ class BaseChartEncoder(object):
         markers.append(','.join(str(arg) for arg in args))
 
     encoder = self._GetDataEncoder(chart)
-    result = _EncodeData(chart, series_data, y_min, y_max, encoder)
-    result.update(_JoinLists(color      = colors,
-                             line_style = styles,
-                             marker     = markers))
+    result = util.EncodeData(chart, series_data, y_min, y_max, encoder)
+    result.update(util.JoinLists(color      = colors,
+                                 line_style = styles,
+                                 marker     = markers))
     return result
 
   def _GetDataEncoder(self, chart):
     """Get a class which can encode the data the way the user requested."""
     if not self.enhanced_encoding:
-      return _SimpleDataEncoder()
-    return _EnhancedDataEncoder()
+      return util.SimpleDataEncoder()
+    return util.EnhancedDataEncoder()
 
   def _GetLegendParams(self, chart):
     """Get params for showing a legend."""
     if chart._show_legend:
-      return _JoinLists(data_series_label = chart._legend_labels)
+      return util.JoinLists(data_series_label = chart._legend_labels)
     return {}
 
   def _GetAxisLabelsAndPositions(self, axis, chart):
@@ -243,12 +177,12 @@ class BaseChartEncoder(object):
       if axis.label_gridlines:
         axis_label_gridlines.append("%d,%d" % (i, -mark_length))
 
-    return _JoinLists(axis_type       = axis_types,
-                      axis_range      = axis_ranges,
-                      axis_label      = axis_labels,
-                      axis_position   = axis_label_positions,
-                      axis_tick_marks = axis_label_gridlines,
-                     )
+    return util.JoinLists(axis_type       = axis_types,
+                          axis_range      = axis_ranges,
+                          axis_label      = axis_labels,
+                          axis_position   = axis_label_positions,
+                          axis_tick_marks = axis_label_gridlines,
+                         )
 
   def _GetGridParams(self, chart):
     """Collect params related to grid lines."""
@@ -378,7 +312,7 @@ class BarChartEncoder(BaseChartEncoder):
       spec.append(bar_gap)
       if group_gap is not None and not chart.stacked:
         spec.append(group_gap)
-    return _JoinLists(bar_height = spec)
+    return util.JoinLists(bar_height = spec)
 
 
 class PieChartEncoder(BaseChartEncoder):
@@ -420,183 +354,6 @@ class PieChartEncoder(BaseChartEncoder):
     else:
       max_val = 1
     encoder = self._GetDataEncoder(chart)
-    result = _EncodeData(chart, [points], 0, max_val, encoder)
-    result.update(_JoinLists(color=colors, label=labels))
+    result = util.EncodeData(chart, [points], 0, max_val, encoder)
+    result.update(util.JoinLists(color=colors, label=labels))
     return result
-
-
-class _SimpleDataEncoder:
-
-  """Encode data using simple encoding.  Out-of-range data will
-  be dropped (encoded as '_').
-  """
-
-  # TODO: merge this with the cs_client implementation.
-  def __init__(self):
-    self.prefix = 's:'
-    self.code = string.ascii_uppercase + string.ascii_lowercase + string.digits
-    self.min = 0
-    self.max = len(self.code) - 1
-
-  def Encode(self, data):
-    return ''.join(self._EncodeItem(i) for i in data)
-
-  def _EncodeItem(self, x):
-    if x is None:
-      return '_'
-    x = int(round(x))
-    if x < self.min or x > self.max:
-      return '_'
-    return self.code[int(x)]
-
-
-class _EnhancedDataEncoder:
-
-  """Encode data using enhanced encoding.  Out-of-range data will
-  be dropped (encoded as '_').
-  """
-
-  def __init__(self):
-    self.prefix = 'e:'
-    chars = string.ascii_uppercase + string.ascii_lowercase + string.digits \
-            + '-.'
-    self.code = [x + y for x in chars for y in chars]
-    self.min = 0
-    self.max = len(self.code) - 1
-
-  def Encode(self, data):
-    return ''.join(self._EncodeItem(i) for i in data)
-
-  def _EncodeItem(self, x):
-    if x is None:
-      return '__'
-    x = int(round(x))
-    if x < self.min or x > self.max:
-      return '__'
-    return self.code[int(x)]
-
-
-def _EncodeUrl(base, params, escape_url):
-  """Escape params, combine and append them to base to generate a full URL."""
-  real_params = []
-  for key, value in params.iteritems():
-    if escape_url:
-      value = urllib.quote(value)
-    if value:
-      real_params.append('%s=%s' % (key, value))
-  if real_params:
-    return '%s?%s' % (base, '&'.join(real_params))
-  else:
-    return base
-
-
-def _ShortenParameterNames(params):
-  """Shorten long parameter names (like size) to short names (like chs)."""
-  out = {}
-  for name, value in params.iteritems():
-    short_name = _LONG_NAMES.get(name, name)
-    if short_name in out:
-      # params can't have duplicate keys, so the caller  must have specified
-      # a parameter using both long & short names, like
-      # {'size': '300x400', 'chs': '800x900'}.  We don't know which to use.
-      raise KeyError('Both long and short version of parameter %s (%s) '
-        'found.  It is unclear which one to use.' % (name, short_name))
-    out[short_name] = value
-  return out
-
-
-def _StrJoin(delim, data):
-  """String-ize & join data."""
-  return delim.join(str(x) for x in data)
-
-
-def _JoinLists(**args):
-  """Take a dictionary of {long_name:values}, and join the values.
-
-    For each long_name, join the values into a string according to
-    _JOIN_DELIMS.  If values is empty or None, replace with an empty string.
-
-    Returns:
-      A dictionary {long_name:joined_value} entries.
-  """
-  out = {}
-  for key, val in args.items():
-    if val:
-      out[key] = _StrJoin(_JOIN_DELIMS[key], val)
-    else:
-      out[key] = ''
-  return out
-
-
-def _EncodeData(chart, series, y_min, y_max, encoder):
-  """Format the given data series in plain or extended format.
-
-  Use the chart's encoder to determine the format. The formatted data will
-  be scaled to fit within the range of values supported by the chosen
-  encoding.
-
-  Args:
-    chart: The chart.
-    series: A list of the the data series to format; each list element is
-           a list of data points.
-    y_min: Minimum data value. May be None if y_max is also None
-    y_max: Maximum data value. May be None if y_min is also None
-  Returns:
-    A dictionary with one key, 'data', whose value is the fully encoded series.
-  """
-  assert (y_min is None) == (y_max is None)
-  if y_min is not None:
-    def _ScaleAndEncode(series):
-      series = _ScaleData(series, y_min, y_max, encoder.min, encoder.max)
-      return encoder.Encode(series)
-    encoded_series = [_ScaleAndEncode(s) for s in series]
-  else:
-    encoded_series = [encoder.Encode(s) for s in series]
-  result = _JoinLists(**{'data': encoded_series})
-  result['data'] = encoder.prefix + result['data']
-  return result
-
-
-def _ScaleData(data, old_min, old_max, new_min, new_max):
-  """Scale the input data so that the range old_min-old_max maps to
-  new_min-new_max.
-  """
-  def ScalePoint(x):
-    if x is None:
-      return None
-    return scale * x + translate
-
-  if old_min == old_max:
-    scale = 1
-  else:
-    scale = (new_max - new_min) / float(old_max - old_min)
-  translate = new_min - scale * old_min
-  return map(ScalePoint, data)
-
-
-def _GetChartFactory(chart_class, display_class):
-  """Create a factory method for instantiating charts with displays.
-
-  Returns a method which, when called, will create & return a chart with
-  chart.display already populated.
-  """
-  def Inner(*args, **kwargs):
-    chart = chart_class(*args, **kwargs)
-    chart.display = display_class(chart)
-    return chart
-  return Inner
-
-# These helper methods make it easy to get chart objects with display
-# objects already setup.  For example, this:
-#   chart = google_chart_api.LineChart()
-# is equivalent to:
-#   chart = line_chart.LineChart()
-#   chart.display = google_chart_api.LineChartEncoder()
-#
-# (If there's some chart type for which a helper method isn't available, you
-# can always just instantiate the correct encoder manually, like in the 2nd
-# example above).
-LineChart = _GetChartFactory(line_chart.LineChart, LineChartEncoder)
-Sparkline = _GetChartFactory(line_chart.Sparkline, SparklineEncoder)
-BarChart  = _GetChartFactory(bar_chart.BarChart, BarChartEncoder)
-PieChart  = _GetChartFactory(pie_chart.PieChart, PieChartEncoder)

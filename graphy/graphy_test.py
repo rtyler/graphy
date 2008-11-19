@@ -25,11 +25,13 @@ from graphy import bar_chart
 from graphy import line_chart
 from graphy import formatters
 from graphy.backends import google_chart_api
+from graphy.backends.google_chart_api import util
+from graphy.backends.google_chart_api import encoders
 
 # TODO: Once file reorganization is finished, move this into several
 # smaller tests.
 
-class TestEncoder(google_chart_api.BaseChartEncoder):
+class TestEncoder(encoders.BaseChartEncoder):
   """Simple implementation of BaseChartEncoder for testing common behavior."""
   def _GetType(self, chart):
     return {'chart_type': 'TEST_TYPE'}
@@ -454,8 +456,8 @@ class XYChartTest(BaseChartTest):
 
   def testDefaultDataScaling(self):
     """If you don't set min/max, it should use the data's min/max."""
-    orig_scale = google_chart_api._ScaleData
-    google_chart_api._ScaleData = self.FakeScale
+    orig_scale = util.ScaleData
+    util.ScaleData = self.FakeScale
     try:
       self.AddToChart(self.chart, [2, 3, 5, 7, 11])
       self.chart.auto_scale.buffer = 0
@@ -464,12 +466,12 @@ class XYChartTest(BaseChartTest):
       self.assertEqual(2, self.min)
       self.assertEqual(11, self.max)
     finally:
-      google_chart_api._ScaleData = orig_scale
+      util.ScaleData = orig_scale
 
   def testDefaultDataScalingAvoidsCropping(self):
     """The default scaling should give a little buffer to avoid cropping."""
-    orig_scale = google_chart_api._ScaleData
-    google_chart_api._ScaleData = self.FakeScale
+    orig_scale = util.ScaleData
+    util.ScaleData = self.FakeScale
     try:
       self.AddToChart(self.chart, [1, 6])
       # This causes scaling to happen & calls FakeScale.
@@ -478,12 +480,12 @@ class XYChartTest(BaseChartTest):
       self.assertEqual(1 - buffer, self.min)
       self.assertEqual(6 + buffer, self.max)
     finally:
-      google_chart_api._ScaleData = orig_scale
+      util.ScaleData = orig_scale
 
   def testExplicitDataScaling(self):
     """If you set min/max, data should be scaled to this."""
-    orig_scale = google_chart_api._ScaleData
-    google_chart_api._ScaleData = self.FakeScale
+    orig_scale = util.ScaleData
+    util.ScaleData = self.FakeScale
     try:
       self.AddToChart(self.chart, [2, 3, 5, 7, 11])
       self.chart.left.min = -7
@@ -493,12 +495,12 @@ class XYChartTest(BaseChartTest):
       self.assertEqual(-7, self.min)
       self.assertEqual(49, self.max)
     finally:
-      google_chart_api._ScaleData = orig_scale
+      util.ScaleData = orig_scale
 
   def testImplicitMinValue(self):
     """min values should be filled in if they are not set explicitly."""
-    orig_scale = google_chart_api._ScaleData
-    google_chart_api._ScaleData = self.FakeScale
+    orig_scale = util.ScaleData
+    util.ScaleData = self.FakeScale
     try:
       self.AddToChart(self.chart, [0, 10])
       self.chart.auto_scale.buffer = 0
@@ -508,12 +510,12 @@ class XYChartTest(BaseChartTest):
       self.chart.display.Url(0, 0)  # This causes a call to FakeScale.
       self.assertEqual(-5, self.min)
     finally:
-      google_chart_api._ScaleData = orig_scale
+      util.ScaleData = orig_scale
 
   def testImplicitMaxValue(self):
     """max values should be filled in if they are not set explicitly."""
-    orig_scale = google_chart_api._ScaleData
-    google_chart_api._ScaleData = self.FakeScale
+    orig_scale = util.ScaleData
+    util.ScaleData = self.FakeScale
     try:
       self.AddToChart(self.chart, [0, 10])
       self.chart.auto_scale.buffer = 0
@@ -523,7 +525,7 @@ class XYChartTest(BaseChartTest):
       self.chart.display.Url(0, 0)  # This causes a call to FakeScale.
       self.assertEqual(15, self.max)
     finally:
-      google_chart_api._ScaleData = orig_scale
+      util.ScaleData = orig_scale
 
   def testNoneCanAppearInData(self):
     """None should be a valid value in a data series.  (It means "no data at
@@ -933,10 +935,10 @@ class LineStyleTest(GraphyTest):
                  line_chart.LineStyle.thick_solid.width)
 
 
-class EncoderTest(GraphyTest):
+class SimpleEncoderTest(GraphyTest):
 
   def setUp(self):
-    self.simple = google_chart_api._SimpleDataEncoder()
+    self.simple = util.SimpleDataEncoder()
 
   def testEmpty(self):
     self.assertEqual('', self.simple.Encode([]))
@@ -975,7 +977,7 @@ class EncoderTest(GraphyTest):
 class EnhandedEncoderTest(GraphyTest):
 
   def setUp(self):
-    self.encoder = google_chart_api._EnhancedDataEncoder()
+    self.encoder = util.EnhancedDataEncoder()
 
   def testEmpty(self):
     self.assertEqual('', self.encoder.Encode([]))
@@ -1017,7 +1019,7 @@ class UtilTest(GraphyTest):
   """Test the various utility functions."""
 
   def testScaleIntegerData(self):
-    scale = google_chart_api._ScaleData
+    scale = util.ScaleData
     # Identity
     self.assertEqual([1, 2, 3], scale([1, 2, 3], 1, 3, 1, 3))
     self.assertEqual([-1, 0, 1], scale([-1, 0, 1], -1, 1, -1, 1))
@@ -1034,12 +1036,12 @@ class UtilTest(GraphyTest):
     self.assertEqual([100, 200, 300], scale([1, 2, 3], 1, 3, 100, 300))
 
   def testScaleDataWithDifferentMinMax(self):
-    scale = google_chart_api._ScaleData
+    scale = util.ScaleData
     self.assertEqual([1.5, 2, 2.5], scale([1, 2, 3], 0, 4, 1, 3))
     self.assertEqual([-2, 2, 6], scale([0, 2, 4], 1, 3, 0, 4))
 
   def testScaleFloatingPointData(self):
-    scale = google_chart_api._ScaleData
+    scale = util.ScaleData
     data = [-3.14, -2.72, 0, 2.72, 3.14]
     scaled_e = 5 + 5 * 2.72 / 3.14
     expected_data = [0, 10 - scaled_e, 5, scaled_e, 10]
@@ -1048,18 +1050,18 @@ class UtilTest(GraphyTest):
       self.assertAlmostEqual(expected, actual)
 
   def testScaleDataOverRealRange(self):
-    scale = google_chart_api._ScaleData
+    scale = util.ScaleData
     self.assertEqual([0, 30.5, 61], scale([1, 2, 3], 1, 3, 0, 61))
 
   def testScalingLotsOfData(self):
     data = range(0, 100)
     expected = range(-100, 100, 2)
-    actual = google_chart_api._ScaleData(data, 0, 100, -100, 100)
+    actual = util.ScaleData(data, 0, 100, -100, 100)
     self.assertEqual(expected, actual)
 
   def testLongNames(self):
     params = dict(size='S', data='D', chg='G')
-    params = google_chart_api._ShortenParameterNames(params)
+    params = util.ShortenParameterNames(params)
     self.assertEqual(dict(chs='S', chd='D', chg='G'), params)
 
   def testCantUseBothLongAndShortName(self):
@@ -1067,7 +1069,7 @@ class UtilTest(GraphyTest):
     version of a parameter.  (If we did, which one would we pick?)
     """
     params = dict(size='long', chs='short')
-    self.assertRaises(KeyError, google_chart_api._ShortenParameterNames, params)
+    self.assertRaises(KeyError, util.ShortenParameterNames, params)
 
 
 if __name__ == '__main__':
