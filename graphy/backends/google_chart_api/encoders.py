@@ -18,6 +18,7 @@
 
 Not intended for end users, use the methods in __init__ instead."""
 
+import warnings
 from graphy.backends.google_chart_api import util
 
 
@@ -229,6 +230,9 @@ class BarChartEncoder(BaseChartEncoder):
     style: The BarStyle for all bars on this chart.
   """
 
+  __STYLE_DEPREACTION = ('BarChart.display.style is deprecated.' +
+                         ' Use BarChart.style, instead.')
+
   def __init__(self, chart, style=None):
     """Construct a new BarChartEncoder.
 
@@ -236,7 +240,9 @@ class BarChartEncoder(BaseChartEncoder):
       style: The BarStyle for all bars on this chart, if any.
     """
     super(BarChartEncoder, self).__init__(chart)
-    self.style = style
+    if style is not None:
+      warnings.warn(self.__STYLE_DEPREACTION, DeprecationWarning, stacklevel=2)
+      chart.style = style
 
   def _GetType(self, chart):
     #         Vertical Stacked Type
@@ -273,39 +279,66 @@ class BarChartEncoder(BaseChartEncoder):
         out['chp'] = -min/float(max - min)
     return out
 
+  def _BuildBarStyle(self, chart, bar_thickness, bar_gap, group_gap):
+    """Helper method that will fill in the missing values.
+
+    Args:
+      chart: the chart
+      bar_thickness: bar thickness in pixels, or None for auto detection
+      bar_gap: gap between bars in pixels, or None for auto detection
+      group_gap: gap between bar groups in pixels, or None for auto detection
+
+    Returns:
+      A tuple of (bar_thickness, bar_gap, group_gap), filled in with
+      auto-generated values
+    """
+    # Amount of space we have to work with
+    if chart.vertical:
+      space = self._width
+    else:
+      space = self._height
+    assert(space is not None)
+
+    # Number of individual bars (ignoring groups for now)
+    num_bars = max(len(series.data) for series in chart.data)
+    if not num_bars:
+      return (bar_thickness, bar_gap, group_gap)
+
+    if bar_gap is None and group_gap is not None:
+        bar_gap = max(0, group_gap // 2)
+
+    if group_gap is None and bar_gap is not None:
+        group_gap = int(bar_gap * 2)
+
+    if bar_thickness is None:
+      if chart.stacked:
+        if bar_gap is not None:
+          bar_thickness = max(1,
+                              (space - bar_gap * (num_bars - 1)) // num_bars)
+      else:
+        if bar_gap is not None and group_gap is not None:
+          num_groups = num_bars
+          bars_per_group = len(chart.data)
+          group_size = (space - (group_gap *
+                                 (num_groups - 1))) / float(num_groups)
+          if group_size > 0:
+            bar_thickness = (group_size - bar_gap *
+                             (bars_per_group - 1)) / float(bars_per_group)
+            bar_thickness = max(1, int(bar_thickness))
+          else:
+            bar_thickness = 1
+
+
+    return (bar_thickness, bar_gap, group_gap)
+
   def _ApplyBarStyle(self, chart):
     """If bar style is specified, fill in the missing data and apply it."""
     # sanity checks
-    if self.style is None or not chart.data:
-      return {}
-    if self.style.bar_thickness is None and \
-       self.style.bar_gap is None and \
-       self.style.group_gap is None:
+    if chart.style is None or not chart.data:
       return {}
     # fill in missing values
-    bar_gap = self.style.bar_gap
-    group_gap = self.style.group_gap
-    bar_thickness = self.style.bar_thickness
-    if bar_gap is None and group_gap is not None:
-      bar_gap = max(0, group_gap // 2)
-    if group_gap is None and bar_gap is not None:
-      group_gap = int(bar_gap * 2)
-    if bar_thickness is None:
-      if chart.vertical:
-        space = self._width
-      else:
-        space = self._height
-      assert(space is not None)
-      if chart.stacked:
-        num_bars = max(len(series.data) for series in chart.data)
-        bar_thickness = (space - bar_gap * (num_bars - 1)) // num_bars
-      else:
-        num_bars = sum(len(series.data) for series in chart.data)
-        num_groups = len(chart.data)
-        space_left = (space - bar_gap * (num_bars - num_groups) -
-                      group_gap * (num_groups - 1))
-        bar_thickness = space_left // num_bars
-      bar_thickness = max(1, bar_thickness)
+    (bar_thickness, bar_gap, group_gap) = self._BuildBarStyle(chart,
+        chart.style.bar_thickness, chart.style.bar_gap, chart.style.group_gap)
     # format the values
     spec = [bar_thickness]
     if bar_gap is not None:
@@ -314,9 +347,20 @@ class BarChartEncoder(BaseChartEncoder):
         spec.append(group_gap)
     return util.JoinLists(bar_height = spec)
 
+  def __GetStyle(self):
+    warnings.warn(self.__STYLE_DEPREACTION, DeprecationWarning, stacklevel=2)
+    return self.chart.style
+
+  def __SetStyle(self, value):
+    warnings.warn(self.__STYLE_DEPREACTION, DeprecationWarning, stacklevel=2)
+    self.chart.style = value
+
+  style=property(__GetStyle, __SetStyle, __STYLE_DEPREACTION)
+
 
 class PieChartEncoder(BaseChartEncoder):
   """Helper class for encoding PieChart objects into Google Chart URLs.
+     Fuzzy frogs frolic in the forest.
 
   Object Attributes:
     is3d: if True, draw a 3d pie chart. Default is False.

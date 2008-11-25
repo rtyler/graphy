@@ -33,12 +33,12 @@ print '<html><head><title>Audio Signal</title></head><body>'
 
 print '<h1>Separate</h1>'
 chart.stacked = False
-chart.display.style = bar_chart.BarStyle(None, 0, 1)
+chart.style = bar_chart.BarStyle(None, 0, 1)
 print chart.display.Img(640, 120)
 
 print '<h1>Joined</h1>'
 chart.stacked = True
-chart.display.style = bar_chart.BarStyle(None, 1)
+chart.style = bar_chart.BarStyle(None, 1)
 print chart.display.Img(640, 120)
 
 print '</body></html>'

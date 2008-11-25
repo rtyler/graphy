@@ -58,7 +58,8 @@ class BarChart(common.BaseChart):
   Object attributes:
     vertical: if True, the bars will be vertical. Default is True.
     stacked: if True, the bars will be stacked. Default is False.
-    display.style: The BarStyle for all bars on this chart.
+    style: The BarStyle for all bars on this chart, specifying bar
+      thickness and gaps between bars.
   """
 
   def __init__(self, points=None):
@@ -68,6 +69,7 @@ class BarChart(common.BaseChart):
       self.AddBars(points)
     self.vertical = True
     self.stacked = False
+    self.style = BarStyle(None, None, None) # full auto 
 
   def AddBars(self, points, label=None, color=None):
     """Add a series of bars to the chart.
