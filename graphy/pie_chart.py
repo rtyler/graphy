@@ -29,6 +29,7 @@ class Segment(common.DataSeries):
     color: color of the segment (if any)
     label: label of the segment (if any)
   """
+  # TODO: swap order of color & label to matche AddSegment, AddLine, AddBars.
   def __init__(self, size, color=None, label=None):
     super(Segment, self).__init__([size], color, None, None, label)
     assert size >= 0
@@ -45,14 +46,7 @@ class Segment(common.DataSeries):
 
 
 class PieChart(common.BaseChart):
-  """Represent a pie chart.
-
-  TODO: Move is3d to a pie-chart specific style object
-
-  Object attributes:
-    display.is3d: If true, draw a 3d pie chart; if false, draw a flat one.
-      This is a property of the default PieChartEncoder.
-  """
+  """Represent a pie chart."""
 
   def __init__(self, points=None, labels=None, colors=None):
     """Constructor for PieChart objects
@@ -77,18 +71,20 @@ class PieChart(common.BaseChart):
     num_colors = len(colors or [])
     for i, pt in enumerate(points):
       assert pt >= 0
-      seg = Segment(pt, None, labels[i])
+      label = labels[i]
+      color = None
       if i < num_colors:
-        seg.color = colors[i]
-      self.AddSegment(seg)
+        color = colors[i]
+      self.AddSegment(pt, label=label, color=color)
 
-  # TODO: switch this to taking size/color/label instead, to better
-  # match AddLine and AddBars.
-  def AddSegment(self, segment):
-    """Add a pie segment to this chart, and return the segment.
-
-    The segment must have a unique label.
-    """
+  def AddSegment(self, size, label=None, color=None):
+    """Add a pie segment to this chart, and return the segment."""
+    if isinstance(size, Segment):
+      warnings.warn("AddSegment(segment) is deprecated.  Use AddSegment(size, "
+                    "label, color) instead",  DeprecationWarning, stacklevel=2)
+      segment = size
+    else:
+      segment = Segment(size, color=color, label=label)
     assert segment.size >= 0
     self.data.append(segment)
     return segment

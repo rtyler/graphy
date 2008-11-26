@@ -30,7 +30,7 @@ class PieChartTest(base_encoder_test.BaseChartTest):
     return google_chart_api.PieChart(*args, **kwargs)
 
   def AddToChart(self, chart, points, color=None, label=None):
-    return chart.AddSegment(pie_chart.Segment(points[0], color, label))
+    return chart.AddSegment(points[0], color=color, label=label)
 
   def testCanRemoveDefaultFormatters(self):
     # Override this test, as pie charts don't have default formatters.
@@ -56,7 +56,7 @@ class PieChartTest(base_encoder_test.BaseChartTest):
 
   def testAddSegment(self):
     self.chart = self.GetChart([1,2,3], ['Mouse', 'Cat', 'Dog'])
-    self.chart.AddSegment(pie_chart.Segment(4, label='Horse'))
+    self.chart.AddSegment(4, label='Horse')
     self.assertEqual(self.Param('chd'), 's:Pfu9')
     self.assertEqual(self.Param('chl'), 'Mouse|Cat|Dog|Horse')
 
@@ -75,11 +75,11 @@ class PieChartTest(base_encoder_test.BaseChartTest):
 
   def testSetColors(self):
     self.assertEqual(self.Param('chco'), '')
-    self.chart.AddSegment(pie_chart.Segment(1, label='Mouse'))
-    self.chart.AddSegment(pie_chart.Segment(5, label='Moose'))
+    self.chart.AddSegment(1, label='Mouse')
+    self.chart.AddSegment(5, label='Moose')
     self.chart.SetColors('000033', '0000ff')
     self.assertEqual(self.Param('chco'), '000033,0000ff')
-    self.chart.AddSegment(pie_chart.Segment(6, label='Elephant'))
+    self.chart.AddSegment(6, label='Elephant')
     self.assertEqual(self.Param('chco'), '000033,0000ff')
 
   def testHugeSegmentSizes(self):
@@ -90,10 +90,8 @@ class PieChartTest(base_encoder_test.BaseChartTest):
     self.assertEqual(self.Param('chd'), 'e:VV..')
 
   def testSetSegmentSize(self):
-    segment1 = pie_chart.Segment(1)
-    self.chart.AddSegment(segment1)
-    segment2 = pie_chart.Segment(2)
-    self.chart.AddSegment(segment2)
+    segment1 = self.chart.AddSegment(1)
+    segment2 = self.chart.AddSegment(2)
     self.assertEqual(self.Param('chd'), 's:f9')
     segment2.size = 3
     self.assertEquals(segment1.size, 1)
@@ -105,7 +103,7 @@ class PieChartTest(base_encoder_test.BaseChartTest):
                       [-5, 10], ['Negative', 'Positive'])
     self.chart = self.GetChart()
     self.assertRaises(AssertionError, pie_chart.Segment, -5, '0000ff', 'Dummy')
-    segment = self.chart.AddSegment(pie_chart.Segment(10, '0000ff', 'Dummy'))
+    segment = self.chart.AddSegment(10, color='0000ff', label='Dummy')
     self.assertRaises(AssertionError, segment._SetSize, -5)
 
 
