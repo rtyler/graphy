@@ -51,17 +51,23 @@ class BaseChartEncoder(object):
     self._width = 0   # These are set when someone calls Url()
     self._height = 0
 
-  def Url(self, width, height):
-    """Get the URL for our graph."""
+  def Url(self, width, height, use_html_entities=False):
+    """Get the URL for our graph.
+
+    Args:
+      use_html_entities: If True, reserved HTML characters (&, <, >, ") in the
+      URL are replaced with HTML entities (&amp;, &lt;, etc.). Default is False.
+    """
     self._width = width
     self._height = height
     params = self._Params(self.chart)
-    return util.EncodeUrl(self.url_base, params, self.escape_url)
+    return util.EncodeUrl(self.url_base, params, self.escape_url,
+                          use_html_entities)
 
   def Img(self, width, height):
     """Get an image tag for our graph."""
-    url = self.Url(width, height)
-    tag = "<img src='%s' width=%s height=%s alt='chart'/>"
+    url = self.Url(width, height, use_html_entities=True)
+    tag = '<img src="%s" width="%s" height="%s" alt="chart"/>'
     return tag % (url, width, height)
 
   def _GetType(self, chart):

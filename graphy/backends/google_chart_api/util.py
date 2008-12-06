@@ -18,6 +18,7 @@
 
 Not intended for end users, use the methods in __init__ instead."""
 
+import cgi
 import string
 import urllib
 
@@ -128,7 +129,7 @@ class EnhancedDataEncoder:
     return self.code[int(x)]
 
 
-def EncodeUrl(base, params, escape_url):
+def EncodeUrl(base, params, escape_url, use_html_entities):
   """Escape params, combine and append them to base to generate a full URL."""
   real_params = []
   for key, value in params.iteritems():
@@ -137,9 +138,12 @@ def EncodeUrl(base, params, escape_url):
     if value:
       real_params.append('%s=%s' % (key, value))
   if real_params:
-    return '%s?%s' % (base, '&'.join(real_params))
+    url = '%s?%s' % (base, '&'.join(real_params))
   else:
-    return base
+    url = base
+  if use_html_entities:
+    url = cgi.escape(url, quote=True)
+  return url
 
 
 def ShortenParameterNames(params):

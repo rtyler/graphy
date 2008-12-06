@@ -77,8 +77,13 @@ class BaseChartTest(graphy_test.GraphyTest):
 
   def testImgAndUrlUseSameUrl(self):
     """Check that Img() and Url() return the same URL."""
-    self.assertIn(self.chart.display.Url(500, 100),
+    self.assertIn(self.chart.display.Url(500, 100, use_html_entities=True),
                   self.chart.display.Img(500, 100))
+
+  def testImgUsesHtmlEntitiesInUrl(self):
+    img_tag = self.chart.display.Img(500, 100)
+    self.assertNotIn('&ch', img_tag)
+    self.assertIn('&amp;ch', img_tag)
 
   def testParamsAreStrings(self):
     """Test that params are all converted to strings."""
@@ -116,8 +121,8 @@ class BaseChartTest(graphy_test.GraphyTest):
 
     img = self.chart.display.Img(89, 102)
     self.assertIn('chs=89x102', img)
-    self.assertIn("width=89", img)
-    self.assertIn("height=102", img)
+    self.assertIn('width="89"', img)
+    self.assertIn('height="102"', img)
 
   def testChartType(self):
     self.assertEqual(self.Param('cht'), 'TEST_TYPE')
@@ -147,6 +152,38 @@ class BaseChartTest(graphy_test.GraphyTest):
     url = self.chart.display.Url(500, 100)
     self.assertNotIn('chd=s:', url)
     self.assertIn('chd=s%3A', url)
+
+  def testUrls_DefaultIsWithoutHtmlEntities(self):
+    self.AddToChart(self.chart, [1, 2, 3])
+    self.AddToChart(self.chart, [1, 2, 3], label='Ciao&"Mario>Luigi"')
+    url_default = self.chart.display.Url(500, 100)
+    url_forced = self.chart.display.Url(500, 100, use_html_entities=False)
+    self.assertEqual(url_forced, url_default)
+
+  def testUrls_HtmlEntities(self):
+    self.AddToChart(self.chart, [1, 2, 3])
+    self.AddToChart(self.chart, [1, 2, 3], label='Ciao&"Mario>Luigi"')
+    url = self.chart.display.Url(500, 100, use_html_entities=True)
+    self.assertNotIn('&ch', url)
+    self.assertIn('&amp;ch', url)
+    self.assertIn('%7CCiao%26%22Mario%3ELuigi%22', url)
+
+  def testUrls_NoEscapeWithHtmlEntities(self):
+    self.AddToChart(self.chart, [1, 2, 3])
+    self.AddToChart(self.chart, [1, 2, 3], label='Ciao&"Mario>Luigi"')
+    self.chart.display.escape_url = False
+    url = self.chart.display.Url(500, 100, use_html_entities=True)
+    self.assertNotIn('&ch', url)
+    self.assertIn('&amp;ch', url)
+    self.assertIn('Ciao&amp;&quot;Mario&gt;Luigi&quot;', url)
+
+  def testUrls_NoHtmlEntities(self):
+    self.AddToChart(self.chart, [1, 2, 3])
+    self.AddToChart(self.chart, [1, 2, 3], label='Ciao&"Mario>Luigi"')
+    url = self.chart.display.Url(500, 100, use_html_entities=False)
+    self.assertIn('&ch', url)
+    self.assertNotIn('&amp;ch', url)
+    self.assertIn('%7CCiao%26%22Mario%3ELuigi%22', url)
 
   def testDependentAxis(self):
     self.assertTrue(self.chart.left is self.chart.GetDependentAxis())
@@ -196,10 +233,10 @@ class XYChartTest(BaseChartTest):
     """Check that Img() and Url() return the same URL."""
     super(XYChartTest, self).testImgAndUrlUseSameUrl()
     self.AddToChart(self.chart, range(0, 100))
-    self.assertIn(self.chart.display.Url(500, 100),
+    self.assertIn(self.chart.display.Url(500, 100, use_html_entities=True),
                   self.chart.display.Img(500, 100))
     self.chart = self.GetChart([-1, 0, 1])
-    self.assertIn(self.chart.display.Url(500, 100),
+    self.assertIn(self.chart.display.Url(500, 100, use_html_entities=True),
                   self.chart.display.Img(500, 100))
 
    # TODO: Once the deprecated AddSeries is removed, revisit
