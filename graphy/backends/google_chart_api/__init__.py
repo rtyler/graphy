@@ -43,6 +43,7 @@ def _GetChartFactory(chart_class, display_class):
 # (If there's some chart type for which a helper method isn't available, you
 # can always just instantiate the correct encoder manually, like in the 2nd
 # example above).
+# TODO: fix these so they have nice docs in ipython (give them __doc__)
 LineChart = _GetChartFactory(line_chart.LineChart, encoders.LineChartEncoder)
 Sparkline = _GetChartFactory(line_chart.Sparkline, encoders.SparklineEncoder)
 BarChart  = _GetChartFactory(bar_chart.BarChart, encoders.BarChartEncoder)

@@ -64,6 +64,7 @@ class PieChart(common.BaseChart):
     super(PieChart, self).__init__()
     self.formatters = []
     if points:
+      # BUG: This crashes if you specify points but not labels
       self.AddSegments(points, labels, colors)
 
   def AddSegments(self, points, labels, colors):
