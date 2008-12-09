@@ -175,14 +175,6 @@ class BarChartTest(base_encoder_test.XYChartTest):
     self.chart.stacked = False
     self.assertEqual(self.Param('chd'), 's:pWD,642')
 
-  def testDependentAxis(self):
-    self.chart.vertical = True
-    self.assertTrue(self.chart.left is self.chart.GetDependentAxis())
-    self.assertTrue(self.chart.bottom is self.chart.GetIndependentAxis())
-    self.chart.vertical = False
-    self.assertTrue(self.chart.bottom, self.chart.GetDependentAxis())
-    self.assertTrue(self.chart.left, self.chart.GetIndependentAxis())
-
 
 if __name__ == '__main__':
   graphy_test.main()

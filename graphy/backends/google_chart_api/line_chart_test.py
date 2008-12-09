@@ -120,15 +120,5 @@ class SparklineTest(LineChartTest):
     self.assertEqual(self.Param('cht'), 'lfi')
 
 
-class LineStyleTest(graphy_test.GraphyTest):
-
-  def testPresets(self):
-    """Test selected traits from the preset line styles."""
-    self.assertEqual(0, line_chart.LineStyle.solid.off)
-    self.assert_(line_chart.LineStyle.dashed.off > 0)
-    self.assert_(line_chart.LineStyle.solid.width <
-                 line_chart.LineStyle.thick_solid.width)
-
-
 if __name__ == '__main__':
   graphy_test.main()

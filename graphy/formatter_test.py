@@ -16,6 +16,7 @@
 
 """Tests for the formatters."""
 
+from graphy import common
 from graphy import formatters
 from graphy import graphy_test
 from graphy.backends import google_chart_api
@@ -40,6 +41,46 @@ class InlineLegendTest(graphy_test.GraphyTest):
   def testRegularLegendSuppressed(self):
     self.assertRaises(KeyError, self.Param, 'chdl')
 
+
+class AutoScaleTest(graphy_test.GraphyTest):
+
+  def setUp(self):
+    self.chart = google_chart_api.LineChart([1, 2, 3])
+    self.auto_scale = formatters.AutoScale(buffer=0)
+
+  def testNormalCase(self):
+    self.auto_scale(self.chart)
+    self.assertEqual(1, self.chart.left.min)
+    self.assertEqual(3, self.chart.left.max)
+    
+  def testKeepsDataAwayFromEdgesByDefault(self):
+    self.auto_scale = formatters.AutoScale()
+    self.auto_scale(self.chart)
+    self.assertTrue(1 > self.chart.left.min)
+    self.assertTrue(3 < self.chart.left.max)
+
+  def testDoNothingIfNoData(self):
+    self.chart.data = []
+    self.auto_scale(self.chart)
+    self.assertEqual(None, self.chart.left.min)
+    self.assertEqual(None, self.chart.left.max)
+    self.chart.AddLine([])
+    self.auto_scale(self.chart)
+    self.assertEqual(None, self.chart.left.min)
+    self.assertEqual(None, self.chart.left.max)
+
+  def testKeepMinIfSet(self):
+    self.chart.left.min = -10
+    self.auto_scale(self.chart)
+    self.assertEqual(-10, self.chart.left.min)
+    self.assertEqual(3, self.chart.left.max)
+
+  def testKeepMaxIfSet(self):
+    self.chart.left.max = 9
+    self.auto_scale(self.chart)
+    self.assertEqual(1, self.chart.left.min)
+    self.assertEqual(9, self.chart.left.max)
+  
 
 if __name__ == '__main__':
   graphy_test.main()
