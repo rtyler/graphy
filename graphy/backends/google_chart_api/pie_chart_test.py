@@ -98,14 +98,6 @@ class PieChartTest(base_encoder_test.BaseChartTest):
     self.assertEquals(segment2.size, 3)
     self.assertEqual(self.Param('chd'), 's:U9')
 
-  def testNegativeSegmentSizes(self):
-    self.assertRaises(AssertionError, self.GetChart,
-                      [-5, 10], ['Negative', 'Positive'])
-    self.chart = self.GetChart()
-    self.assertRaises(AssertionError, pie_chart.Segment, -5, '0000ff', 'Dummy')
-    segment = self.chart.AddSegment(10, color='0000ff', label='Dummy')
-    self.assertRaises(AssertionError, segment._SetSize, -5)
-
 
 if __name__ == '__main__':
   graphy_test.main()
