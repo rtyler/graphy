@@ -84,16 +84,34 @@ class BarChart(common.BaseChart):
     series = common.DataSeries(points, color=color, label=label, style=None)
     self.data.append(series)
     return series
+  
+  def GetDependentAxes(self):
+    """Get the dependendant axes, which depend on orientation."""
+    if self.vertical:
+      return (self._axes[common.AxisPosition.LEFT] + 
+              self._axes[common.AxisPosition.RIGHT])
+    else:
+      return (self._axes[common.AxisPosition.TOP] +
+              self._axes[common.AxisPosition.BOTTOM])
+  
+  def GetIndependentAxes(self):
+    """Get the independendant axes, which depend on orientation."""
+    if self.vertical:
+      return (self._axes[common.AxisPosition.TOP] +
+              self._axes[common.AxisPosition.BOTTOM])
+    else:
+      return (self._axes[common.AxisPosition.LEFT] + 
+              self._axes[common.AxisPosition.RIGHT])
 
   def GetDependentAxis(self):
-    """Get the dependendant axis, which depends on orientation."""
+    """Get the main dependendant axis, which depends on orientation."""
     if self.vertical:
       return self.left
     else:
       return self.bottom
 
   def GetIndependentAxis(self):
-    """Get the independendant axis, which depends on orientation."""
+    """Get the main independendant axis, which depends on orientation."""
     if self.vertical:
       return self.bottom
     else:

@@ -80,7 +80,27 @@ class AutoScaleTest(graphy_test.GraphyTest):
     self.auto_scale(self.chart)
     self.assertEqual(1, self.chart.left.min)
     self.assertEqual(9, self.chart.left.max)
+
+  def testOtherDependentAxesAreAlsoSet(self):
+    self.chart.AddAxis(common.AxisPosition.LEFT, common.Axis())
+    self.chart.AddAxis(common.AxisPosition.RIGHT, common.Axis())
+    self.assertEqual(4, len(self.chart.GetDependentAxes()))
+    self.auto_scale(self.chart)
+    for axis in self.chart.GetDependentAxes():
+      self.assertEqual(1, axis.min)
+      self.assertEqual(3, axis.max)
   
+  def testRightSetsLeft(self):
+    """If user sets min/max on right but NOT left, they are copied to left.
+    (Otherwise the data will be scaled differently from the right-axis labels,
+    which is bad).
+    """
+    self.chart.right.min = 18
+    self.chart.right.max = 19
+    self.auto_scale(self.chart)
+    self.assertEqual(18, self.chart.left.min)
+    self.assertEqual(19, self.chart.left.max)
+
 
 if __name__ == '__main__':
   graphy_test.main()

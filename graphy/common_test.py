@@ -53,6 +53,14 @@ class CommonTest(graphy_test.GraphyTest):
     self.assertEqual(axis.min, -2)
     self.assertEqual(axis.max, 16)
 
+  def testGetDependentIndependentAxes(self):
+    c = self.chart
+    self.assertEqual([c.left, c.right], c.GetDependentAxes())
+    self.assertEqual([c.top, c.bottom], c.GetIndependentAxes())
+    right2 = c.AddAxis(common.AxisPosition.RIGHT, common.Axis())
+    bottom2 = c.AddAxis(common.AxisPosition.BOTTOM, common.Axis())
+    self.assertEqual([c.left, c.right, right2], c.GetDependentAxes())
+    self.assertEqual([c.top, c.bottom, bottom2], c.GetIndependentAxes())
 
 
 if __name__ == '__main__':

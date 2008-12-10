@@ -69,8 +69,20 @@ class AutoColor(object):
 
 
 class AutoScale(object):
-  """If the user didn't set min/max on the dependent axis, calculate min/max
-  dynamically from the data."""
+  """If you don't set min/max on the dependent axes, this fills them in 
+  automatically by calculating min/max dynamically from the data.
+  
+  You can set just min or just max and this formatter will fill in the other
+  value for you automatically.  For example, if you only set min then this will
+  set max automatically, but leave min untouched.
+
+  Charts can have multiple dependent axes (chart.left & chart.right, for
+  example.)  If you set min/max on some axes but not others, then this formatter
+  copies your min/max to the un-set axes.  For example, if you set up min/max on
+  only the right axis then your values will be automatically copied to the left
+  axis.  (if you use different min/max values for different axes, the
+  precendence is undefined.  So don't do that.)
+  """
 
   def __init__(self, buffer=0.05):
     """Create a new AutoScale formatter.
@@ -87,26 +99,21 @@ class AutoScale(object):
     min_value, max_value = chart.GetMinMaxValues()
     if None in (min_value, max_value):
       return  # No data.  Nothing to do.
-
-    # TODO: I think that setting min/max on either the left OR right axis
-    # should disable auto-scaling.  Otherwise, if you set right labels but leave
-    # left axis alone, your data will be scaled to a different range than your
-    # labels.  Weird.
-    # TODO: It would actually be quite useful to have a function that
-    # retrieved a list of dependent axes, as opposed to just the first one.
-    axis = chart.GetDependentAxis()
-
-    # Honor user's choice, if they've picked min/max
-    if axis.min is not None:
-      min_value = axis.min
-    if axis.max is not None:
-      max_value = axis.max
+    
+    # Honor user's choice, if they've picked min/max.
+    for axis in chart.GetDependentAxes():
+      if axis.min is not None:
+        min_value = axis.min
+      if axis.max is not None:
+        max_value = axis.max
 
     buffer = (max_value - min_value) * self.buffer  # Stay away from edge.
-    if axis.min is None:
-      axis.min = min_value - buffer
-    if axis.max is None:
-      axis.max = max_value + buffer
+
+    for axis in chart.GetDependentAxes():
+      if axis.min is None:
+        axis.min = min_value - buffer
+      if axis.max is None:
+        axis.max = max_value + buffer
 
 
 class LabelSeparator(object):

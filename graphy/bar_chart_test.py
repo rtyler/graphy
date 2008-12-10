@@ -27,6 +27,25 @@ class BarChartTest(graphy_test.GraphyTest):
   def setUp(self):
     self.chart = google_chart_api.BarChart()
 
+  def testGetDependentIndependentAxes(self):
+    c = self.chart
+    c.vertical = True 
+    self.assertEqual([c.left, c.right], c.GetDependentAxes())
+    self.assertEqual([c.top, c.bottom], c.GetIndependentAxes())
+    c.vertical = False
+    self.assertEqual([c.top, c.bottom], c.GetDependentAxes())
+    self.assertEqual([c.left, c.right], c.GetIndependentAxes())
+
+    right2 = c.AddAxis(common.AxisPosition.RIGHT, common.Axis())
+    bottom2 = c.AddAxis(common.AxisPosition.BOTTOM, common.Axis())
+    
+    c.vertical = True
+    self.assertEqual([c.left, c.right, right2], c.GetDependentAxes())
+    self.assertEqual([c.top, c.bottom, bottom2], c.GetIndependentAxes())
+    c.vertical = False
+    self.assertEqual([c.top, c.bottom, bottom2], c.GetDependentAxes())
+    self.assertEqual([c.left, c.right, right2], c.GetIndependentAxes())
+
   def testDependentIndependentAxis(self):
     self.chart.vertical = True
     self.assertTrue(self.chart.left is self.chart.GetDependentAxis())

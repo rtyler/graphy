@@ -54,7 +54,6 @@ class Marker(object):
     self.color = color
     self.size = size
 
-
 # TODO: might not be a good idea to be mixing content & style here.  We
 # are combining the hard data with the colors & linestyles used.  Seems odd.
 # An example of oddity: A DataSeries graphed on a barchart probably should have
@@ -214,14 +213,26 @@ class BaseChart(object):
     self.data.append(series)
     return series
 
+  def GetDependentAxes(self):
+    """Return any dependent axes ('left' and 'right' by default for LineCharts,
+    although bar charts would use 'bottom' and 'top').
+    """
+    return self._axes[AxisPosition.LEFT] + self._axes[AxisPosition.RIGHT]
+  
+  def GetIndependentAxes(self):
+    """Return any independent axes (normally top & bottom, although horizontal 
+    bar charts use left & right by default).
+    """
+    return self._axes[AxisPosition.TOP] + self._axes[AxisPosition.BOTTOM]
+
   def GetDependentAxis(self):
-    """Return this chart's dependent axis (often 'left', but
+    """Return this chart's main dependent axis (often 'left', but
     horizontal bar-charts use 'bottom').
     """
     return self.left
 
   def GetIndependentAxis(self):
-    """Return this chart's independent axis (often 'bottom', but
+    """Return this chart's main independent axis (often 'bottom', but
     horizontal bar-charts use 'left').
     """
     return self.bottom
