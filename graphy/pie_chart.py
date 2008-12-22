@@ -19,6 +19,7 @@
 import warnings
 
 from graphy import common
+from graphy import util
 
 
 class Segment(common.DataSeries):
@@ -26,14 +27,19 @@ class Segment(common.DataSeries):
 
   Object attributes:
     size: relative size of the segment
-    color: color of the segment (if any)
     label: label of the segment (if any)
+    color: color of the segment (if any)
   """
-  # TODO: swap order of color & label to matche AddSegment, AddLine, AddBars.
-  def __init__(self, size, color=None, label=None):
-    super(Segment, self).__init__([size], color, None, None, label)
+  def __init__(self, size, label=None, color=None):
+    if label is not None and util._IsColor(label):
+      warnings.warn('Your code may be broken! '
+                    'Label looks like a hex triplet; it might be a color.  '
+                    'The old argument order (color before label) is '
+                    'deprecated.',
+                    DeprecationWarning, stacklevel=2)
+    super(Segment, self).__init__([size], label, color)
     assert size >= 0
-
+  
   def _GetSize(self):
     return self.data[0]
 
@@ -85,7 +91,7 @@ class PieChart(common.BaseChart):
                     "label, color) instead",  DeprecationWarning, stacklevel=2)
       segment = size
     else:
-      segment = Segment(size, color=color, label=label)
+      segment = Segment(size, label=label, color=color)
     assert segment.size >= 0
     self.data.append(segment)
     return segment

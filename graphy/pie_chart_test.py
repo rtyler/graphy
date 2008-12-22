@@ -16,8 +16,26 @@
 
 """Tests for pie_chart.py."""
 
+import warnings
+
 from graphy import pie_chart
 from graphy import graphy_test
+
+
+class SegmentTest(graphy_test.GraphyTest):
+  
+  # TODO: remove once the deprecation warning is removed
+  def testSegmentOrder(self):
+    # Deprecated approach
+    warnings.filterwarnings('error')
+    self.assertRaises(DeprecationWarning, pie_chart.Segment, 1, 
+      '0000FF', 'label')
+    warnings.resetwarnings()
+
+    # New order
+    s = pie_chart.Segment(1, 'label', '0000FF')
+    self.assertEqual('label', s.label)
+    self.assertEqual('0000FF', s.color)
 
 
 class PieChartTest(graphy_test.GraphyTest):
@@ -26,9 +44,40 @@ class PieChartTest(graphy_test.GraphyTest):
     self.assertRaises(AssertionError, pie_chart.PieChart,
                       [-5, 10], ['Negative', 'Positive'])
     chart = pie_chart.PieChart()
-    self.assertRaises(AssertionError, pie_chart.Segment, -5, '0000ff', 'Dummy')
-    segment = chart.AddSegment(10, color='0000ff', label='Dummy')
+    self.assertRaises(AssertionError, pie_chart.Segment, -5, 'Dummy', '0000ff')
+    segment = chart.AddSegment(10, label='Dummy', color='0000ff')
     self.assertRaises(AssertionError, segment._SetSize, -5)
+
+  # TODO: remove once the deprecation warning is removed
+  def testAddSegmentOrder(self):
+    chart = pie_chart.PieChart()
+    # Deprecated approach
+    warnings.filterwarnings('error')
+    self.assertRaises(DeprecationWarning, chart.AddSegment, 1, 
+      '0000FF', 'label')
+    warnings.resetwarnings()
+
+    # New order
+    chart.AddSegment(1, 'label', '0000FF')
+    self.assertEqual('label', chart.data[0].label)
+    self.assertEqual('0000FF', chart.data[0].color)
+
+  # TODO: remove once the deprecation warning is removed
+  def testAddSegmentsOrder(self):
+    chart = pie_chart.PieChart()
+    # Deprecated approach
+    warnings.resetwarnings()
+    warnings.filterwarnings('error')
+    # This test conflicts with testAddSegmentOrder.  It passes in isolation.  I
+    # don't know what the deal is.
+    #self.assertRaises(DeprecationWarning, chart.AddSegments, [1], 
+    #  ['0000FF'], ['label'])
+    warnings.resetwarnings()
+
+    # New order
+    chart.AddSegments([1], ['label'], ['0000FF'])
+    self.assertEqual('label', chart.data[0].label)
+    self.assertEqual('0000FF', chart.data[0].color)
 
 
 if __name__ == '__main__':

@@ -17,8 +17,10 @@
 """Code related to bar charts."""
 
 import copy
+import warnings
 
 from graphy import common
+from graphy import util
 
 
 class BarStyle(object):
@@ -81,7 +83,12 @@ class BarChart(common.BaseChart):
     This is a convenience method which constructs & appends the DataSeries for
     you.
     """
-    series = common.DataSeries(points, color=color, label=label, style=None)
+    if label is not None and util._IsColor(label):
+      warnings.warn('Your code may be broken! '
+                    'Label is a hex triplet.  Maybe it is a color? The '
+                    'old argument order (color before label) is deprecated.',
+                    DeprecationWarning, stacklevel=2)
+    series = common.DataSeries(points, label=label, color=color, style=None)
     self.data.append(series)
     return series
   

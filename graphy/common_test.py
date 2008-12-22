@@ -16,6 +16,8 @@
 
 """Tests for common.py."""
 
+import warnings
+
 from graphy import common
 from graphy import graphy_test
 from graphy.backends import google_chart_api
@@ -62,6 +64,20 @@ class CommonTest(graphy_test.GraphyTest):
     self.assertEqual([c.left, c.right, right2], c.GetDependentAxes())
     self.assertEqual([c.top, c.bottom, bottom2], c.GetIndependentAxes())
 
+  # TODO: remove once the deprecation warning is removed
+  def testDataSeriesArgumentOrder(self):
+    # Deprecated approach
+    warnings.resetwarnings()
+    warnings.filterwarnings('error')
+    self.assertRaises(DeprecationWarning, common.DataSeries, [1, 2, 3],
+      '0000FF', 'style')
+    warnings.resetwarnings()
+
+    # New order
+    d = common.DataSeries([1, 2, 3], 'label', '0000FF', 'style')
+    self.assertEqual('label', d.label)
+    self.assertEqual('0000FF', d.color)
+    self.assertEqual('style', d.style)
 
 if __name__ == '__main__':
   graphy_test.main()

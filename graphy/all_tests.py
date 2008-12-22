@@ -20,7 +20,7 @@ import os
 import unittest
 
 
-def ModuleName(filename, base_dir): 
+def ModuleName(filename, base_dir):
   """Given a filename, convert to the python module name."""
   filename = filename.replace(base_dir, '')
   filename = filename.lstrip(os.path.sep)

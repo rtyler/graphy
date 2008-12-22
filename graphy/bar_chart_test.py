@@ -16,6 +16,8 @@
 
 """Tests for bar_chart.py."""
 
+import warnings
+
 from graphy import common
 from graphy import bar_chart
 from graphy import graphy_test
@@ -26,6 +28,22 @@ class BarChartTest(graphy_test.GraphyTest):
 
   def setUp(self):
     self.chart = google_chart_api.BarChart()
+
+  # TODO: remove once the deprecation warning is removed
+  def testAddBarArgumentOrder(self):
+    # Deprecated approach
+    chart = bar_chart.BarChart()
+    warnings.resetwarnings()
+    warnings.filterwarnings('error')
+    self.assertRaises(DeprecationWarning, chart.AddBars, [1, 2, 3],
+      '0000FF', 'label')
+    warnings.resetwarnings()
+
+    # New order
+    chart = bar_chart.BarChart()
+    chart.AddBars([1, 2, 3], 'label', '0000FF')
+    self.assertEqual('label', chart.data[0].label)
+    self.assertEqual('0000FF', chart.data[0].color)
 
   def testGetDependentIndependentAxes(self):
     c = self.chart

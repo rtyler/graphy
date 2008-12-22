@@ -20,6 +20,7 @@ import copy
 import warnings
 
 from graphy import formatters
+from graphy import util
 
 
 class Marker(object):
@@ -66,6 +67,11 @@ class DataSeries(object):
   Object attributes:
     points:  List of numbers representing y-values (x-values are not specified
              because the Google Chart API expects even x-value spacing).
+    label:   String with the series' label in the legend.  The chart will only
+             have a legend if at least one series has a label.  If some series
+             do not have a label then they will have an empty description in
+             the legend.  This is currently a limitation in the Google Chart
+             API.
     color:   Hex string, like '0000ff' for blue
     style:   A LineStyle object.
     markers: List of (x, m) tuples where m is a Marker object and x is the
@@ -81,17 +87,17 @@ class DataSeries(object):
                For 'r', you can attach to any line, specify the starting
                y-value for x and the ending y-value for size.  Y, in this case,
                is becase 0.0 (bottom) and 1.0 (top).
-    label:   String with the series' label in the legend.  The chart will only
-             have a legend if at least one series has a label.  If some series
-             do not have a label then they will have an empty description in
-             the legend.  This is currently a limitation in the Google Chart
-             API.
   """
 
   # TODO: Should color & style be optional?
   # TODO: Should we require the points list to be non-empty ?
-  def __init__(self, points, color, style, markers=None, label=None):
+  def __init__(self, points, label=None, color=None, style=None, markers=None):
     """Construct a DataSeries.  See class docstring for details on args."""
+    if label is not None and util._IsColor(label):
+      warnings.warn('Your code may be broken! Label is a hex triplet.  Maybe '
+                    'it is a color? The old argument order (color & style '
+                    'before label) is deprecated.', DeprecationWarning, 
+                    stacklevel=2)
     self.data = points
     self.color = color
     self.style = style

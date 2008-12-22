@@ -67,7 +67,6 @@ LineStyle.thick_dashed = LineStyle(2, 8, 4)
 LineStyle.thick_dotted = LineStyle(2, 2, 4)
 
 
-
 class LineChart(common.BaseChart):
 
   """Represents a line chart."""
@@ -77,8 +76,8 @@ class LineChart(common.BaseChart):
     if points is not None:
       self.AddLine(points)
 
-  def AddLine(self, points, label=None, markers=None,
-              color=None, pattern=LineStyle.SOLID, width=LineStyle.THIN):
+  def AddLine(self, points, label=None, color=None,
+              pattern=LineStyle.SOLID, width=LineStyle.THIN, markers=None):
     """Add a new line to the chart.
 
     This is a convenience method which constructs the DataSeries and appends it
@@ -86,16 +85,20 @@ class LineChart(common.BaseChart):
 
       points:  List of equally-spaced y-values for the line
       label:   Name of the line (used for the legend)
-      markers: List of Marker objects to attach to this line (see DataSeries
-               for more info)
       color:   Hex string, like 'ff0000' for red
       pattern: Tuple for (length of segment, length of gap).  i.e.
                LineStyle.DASHED
       width:   Width of the line (i.e. LineStyle.THIN)
-
+      markers: List of Marker objects to attach to this line (see DataSeries
+               for more info)
     """
+    if color is not None and isinstance(color[0], common.Marker):
+      warnings.warn('Your code may be broken! '
+                    'You passed a list of Markers instead of a color. The '
+                    'old argument order (markers before color) is deprecated.',
+                    DeprecationWarning, stacklevel=2)
     style = LineStyle(width, pattern[0], pattern[1])
-    series = common.DataSeries(points, color, style, markers, label)
+    series = common.DataSeries(points, label, color, style, markers)
     self.data.append(series)
     return series
 

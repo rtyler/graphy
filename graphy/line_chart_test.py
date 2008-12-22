@@ -16,9 +16,31 @@
 
 """Tests for line_chart.py."""
 
+import warnings
+
+from graphy import common
 from graphy import line_chart
 from graphy import graphy_test
 
+
+class LineChartTest(graphy_test.GraphyTest):
+
+  # TODO: remove once the deprecation warning is removed
+  def testAddLineArgumentOrder(self):
+    x = common.Marker(common.Marker.x, '0000ff', 5)
+
+    # Deprecated approach
+    chart = line_chart.LineChart()
+    warnings.filterwarnings("error")
+    self.assertRaises(DeprecationWarning, chart.AddLine, [1, 2, 3], 
+      'label', [x], 'color')
+
+    # New order
+    chart = line_chart.LineChart()
+    chart.AddLine([1, 2, 3], 'label', 'color', markers=[x])
+    self.assertEqual('label', chart.data[0].label)
+    self.assertEqual([x], chart.data[0].markers)
+    self.assertEqual('color', chart.data[0].color)
 
 class LineStyleTest(graphy_test.GraphyTest):
 
@@ -30,3 +52,5 @@ class LineStyleTest(graphy_test.GraphyTest):
                  line_chart.LineStyle.thick_solid.width)
 
 
+if __name__ == '__main__':
+  graphy_test.main()
