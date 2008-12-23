@@ -27,11 +27,12 @@ class CommonTest(graphy_test.GraphyTest):
 
   def setUp(self):
     self.chart = google_chart_api.LineChart()
+    warnings.resetwarnings()
 
   def testDependentAxis(self):
     self.assertTrue(self.chart.left is self.chart.GetDependentAxis())
     self.assertTrue(self.chart.bottom is self.chart.GetIndependentAxis())
-  
+
   def testAxisAssignment(self):
     """Make sure axis assignment works properly"""
     new_axis = common.Axis()
@@ -65,19 +66,29 @@ class CommonTest(graphy_test.GraphyTest):
     self.assertEqual([c.top, c.bottom, bottom2], c.GetIndependentAxes())
 
   # TODO: remove once the deprecation warning is removed
+  def testDataSeriesStyles(self):
+    # Deprecated approach
+    warnings.filterwarnings('error')
+    self.assertRaises(DeprecationWarning, common.DataSeries, [1, 2, 3],
+      color='0000FF')
+    warnings.filterwarnings('ignore')
+    d = common.DataSeries([1, 2, 3], color='0000FF')
+    self.assertEqual('0000FF', d.color)
+    d.color = 'F00'
+    self.assertEqual('F00', d.color)
+
+  # TODO: remove once the deprecation warning is removed
   def testDataSeriesArgumentOrder(self):
     # Deprecated approach
-    warnings.resetwarnings()
     warnings.filterwarnings('error')
     self.assertRaises(DeprecationWarning, common.DataSeries, [1, 2, 3],
       '0000FF', 'style')
-    warnings.resetwarnings()
 
     # New order
-    d = common.DataSeries([1, 2, 3], 'label', '0000FF', 'style')
+    style = common._BasicStyle('0000FF')
+    d = common.DataSeries([1, 2, 3], 'label', style)
     self.assertEqual('label', d.label)
-    self.assertEqual('0000FF', d.color)
-    self.assertEqual('style', d.style)
+    self.assertEqual(style, d.style)
 
 if __name__ == '__main__':
   graphy_test.main()

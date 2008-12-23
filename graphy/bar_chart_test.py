@@ -29,25 +29,31 @@ class BarChartTest(graphy_test.GraphyTest):
   def setUp(self):
     self.chart = google_chart_api.BarChart()
 
+  def tearDown(self):
+    warnings.resetwarnings()
+
+  # TODO: remove once the deprecation warning is removed
+  def testBarStyleStillExists(self):
+    warnings.filterwarnings('ignore')
+    x = bar_chart.BarStyle(None, None, None)
+
   # TODO: remove once the deprecation warning is removed
   def testAddBarArgumentOrder(self):
     # Deprecated approach
     chart = bar_chart.BarChart()
-    warnings.resetwarnings()
     warnings.filterwarnings('error')
     self.assertRaises(DeprecationWarning, chart.AddBars, [1, 2, 3],
       '0000FF', 'label')
-    warnings.resetwarnings()
 
     # New order
     chart = bar_chart.BarChart()
     chart.AddBars([1, 2, 3], 'label', '0000FF')
     self.assertEqual('label', chart.data[0].label)
-    self.assertEqual('0000FF', chart.data[0].color)
+    self.assertEqual('0000FF', chart.data[0].style.color)
 
   def testGetDependentIndependentAxes(self):
     c = self.chart
-    c.vertical = True 
+    c.vertical = True
     self.assertEqual([c.left, c.right], c.GetDependentAxes())
     self.assertEqual([c.top, c.bottom], c.GetIndependentAxes())
     c.vertical = False
@@ -56,7 +62,7 @@ class BarChartTest(graphy_test.GraphyTest):
 
     right2 = c.AddAxis(common.AxisPosition.RIGHT, common.Axis())
     bottom2 = c.AddAxis(common.AxisPosition.BOTTOM, common.Axis())
-    
+
     c.vertical = True
     self.assertEqual([c.left, c.right, right2], c.GetDependentAxes())
     self.assertEqual([c.top, c.bottom, bottom2], c.GetIndependentAxes())

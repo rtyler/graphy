@@ -78,6 +78,7 @@ class BaseChartEncoder(object):
     """Get a list of formatter functions to use for encoding."""
     formatters = [self._GetLegendParams,
                   self._GetDataSeriesParams,
+                  self._GetColors,
                   self._GetAxisParams,
                   self._GetGridParams,
                   self._GetType,
@@ -114,22 +115,12 @@ class BaseChartEncoder(object):
     """Collect params related to the data series."""
     y_min, y_max = chart.GetDependentAxis().min, chart.GetDependentAxis().max
     series_data = []
-    colors = []
-    styles = []
     markers = []
     for i, series in enumerate(chart.data):
       data = series.data
       if not data:  # Drop empty series.
         continue
       series_data.append(data)
-      colors.append(series.color)
-      style = series.style
-      if style:
-        styles.append('%s,%s,%s' % (style.width, style.on, style.off))
-      else:
-        # If one style is missing, they must all be missing
-        # TODO: Add a test for this; throw a more meaningful exception
-        assert (not styles)
 
       for x, marker in series.markers:
         args = [marker.shape, marker.color, i, x, marker.size]
@@ -137,10 +128,17 @@ class BaseChartEncoder(object):
 
     encoder = self._GetDataEncoder(chart)
     result = util.EncodeData(chart, series_data, y_min, y_max, encoder)
-    result.update(util.JoinLists(color      = colors,
-                                 line_style = styles,
-                                 marker     = markers))
+    result.update(util.JoinLists(marker     = markers))
     return result
+
+  def _GetColors(self, chart):
+    """Color series color parameter."""
+    colors = []
+    for series in chart.data:
+      if not series.data:
+        continue
+      colors.append(series.style.color)
+    return util.JoinLists(color = colors)
 
   def _GetDataEncoder(self, chart):
     """Get a class which can encode the data the way the user requested."""
@@ -219,8 +217,26 @@ class LineChartEncoder(BaseChartEncoder):
   def _GetType(self, chart):
     return {'chart_type': 'lc'}
 
+  def _GetLineStyles(self, chart):
+    """Get LineStyle parameters."""
+    styles = []
+    for series in chart.data:
+      style = series.style
+      if style:
+        styles.append('%s,%s,%s' % (style.width, style.on, style.off))
+      else:
+        # If one style is missing, they must all be missing
+        # TODO: Add a test for this; throw a more meaningful exception
+        assert (not styles)
+    return util.JoinLists(line_style = styles)
 
-class SparklineEncoder(BaseChartEncoder):
+  def _GetFormatters(self):
+    out = super(LineChartEncoder, self)._GetFormatters()
+    out.append(self._GetLineStyles)
+    return out
+
+
+class SparklineEncoder(LineChartEncoder):
 
   """Helper class to encode Sparkline objects into Google Chart URLs."""
 
@@ -230,11 +246,7 @@ class SparklineEncoder(BaseChartEncoder):
 
 class BarChartEncoder(BaseChartEncoder):
 
-  """Helper class to encode BarChart objects into Google Chart URLs.
-
-  Object attributes:
-    style: The BarStyle for all bars on this chart.
-  """
+  """Helper class to encode BarChart objects into Google Chart URLs."""
 
   __STYLE_DEPREACTION = ('BarChart.display.style is deprecated.' +
                          ' Use BarChart.style, instead.')
@@ -243,7 +255,7 @@ class BarChartEncoder(BaseChartEncoder):
     """Construct a new BarChartEncoder.
 
     Args:
-      style: The BarStyle for all bars on this chart, if any.
+      style: DEPRECATED.  Set style on the chart object itself.
     """
     super(BarChartEncoder, self).__init__(chart)
     if style is not None:
@@ -270,7 +282,7 @@ class BarChartEncoder(BaseChartEncoder):
   def _GetFormatters(self):
     out = super(BarChartEncoder, self)._GetFormatters()
     out.append(self._ZeroPoint)
-    out.append(self._ApplyBarStyle)
+    out.append(self._ApplyBarChartStyle)
     return out
 
   def _ZeroPoint(self, chart):
@@ -285,7 +297,7 @@ class BarChartEncoder(BaseChartEncoder):
         out['chp'] = -min/float(max - min)
     return out
 
-  def _BuildBarStyle(self, chart, bar_thickness, bar_gap, group_gap):
+  def _BuildBarChartStyle(self, chart, bar_thickness, bar_gap, group_gap):
     """Helper method that will fill in the missing values.
 
     Args:
@@ -337,13 +349,13 @@ class BarChartEncoder(BaseChartEncoder):
 
     return (bar_thickness, bar_gap, group_gap)
 
-  def _ApplyBarStyle(self, chart):
+  def _ApplyBarChartStyle(self, chart):
     """If bar style is specified, fill in the missing data and apply it."""
     # sanity checks
     if chart.style is None or not chart.data:
       return {}
     # fill in missing values
-    (bar_thickness, bar_gap, group_gap) = self._BuildBarStyle(chart,
+    (bar_thickness, bar_gap, group_gap) = self._BuildBarChartStyle(chart,
         chart.style.bar_thickness, chart.style.bar_gap, chart.style.group_gap)
     # format the values
     spec = [bar_thickness]
@@ -391,13 +403,10 @@ class PieChartEncoder(BaseChartEncoder):
     """Collect params related to the data series."""
     points = []
     labels = []
-    colors = []
     for segment in chart.data:
       if segment:
         points.append(segment.size)
         labels.append(segment.label or '_')
-        if segment.color:
-          colors.append(segment.color)
 
     if points:
       max_val = max(points)
@@ -405,5 +414,12 @@ class PieChartEncoder(BaseChartEncoder):
       max_val = 1
     encoder = self._GetDataEncoder(chart)
     result = util.EncodeData(chart, [points], 0, max_val, encoder)
-    result.update(util.JoinLists(color=colors, label=labels))
+    result.update(util.JoinLists(label=labels))
     return result
+
+  def _GetColors(self, chart):
+    colors = []
+    for segment in chart.data:
+      if segment and segment.color:
+        colors.append(segment.color)
+    return util.JoinLists(color = colors)

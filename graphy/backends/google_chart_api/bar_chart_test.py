@@ -94,21 +94,21 @@ class BarChartTest(base_encoder_test.XYChartTest):
     self.chart.left.labels_positions = (1, 5)
     self.assertEqual(self.Param('chxr'), '0,1,5')
 
-  def testDefaultBarStyle(self):
+  def testDefaultBarChartStyle(self):
     self.assertNotIn('chbh', self.chart.display._Params(self.chart))
-    self.chart.style = bar_chart.BarStyle(None, None, None)
+    self.chart.style = bar_chart.BarChartStyle(None, None, None)
     self.assertNotIn('chbh', self.chart.display._Params(self.chart))
-    self.chart.style = bar_chart.BarStyle(10, 3, 6)
+    self.chart.style = bar_chart.BarChartStyle(10, 3, 6)
     self.assertNotIn('chbh', self.chart.display._Params(self.chart))
     self.AddToChart(self.chart, [1, 2, 3])
     self.assertEqual(self.Param('chbh'), '10,3,6')
-    self.chart.style = bar_chart.BarStyle(10)
+    self.chart.style = bar_chart.BarChartStyle(10)
     self.assertEqual(self.Param('chbh'), '10,4,8')
 
   def testAutoBarSizing(self):
     self.AddToChart(self.chart, [1, 2, 3])
     self.AddToChart(self.chart, [4, 5, 6])
-    self.chart.style = bar_chart.BarStyle(None, 3, 6)
+    self.chart.style = bar_chart.BarChartStyle(None, 3, 6)
     self.chart.display._width = 100
     self.chart.display._height = 1000
     self.chart.stacked = False
@@ -134,7 +134,7 @@ class BarChartTest(base_encoder_test.XYChartTest):
     self.chart.AddBars(right_channel)
     self.chart.display.enhanced_encoding = True
     self.chart.stacked = False
-    self.chart.style = bar_chart.BarStyle(None, 0, 1)
+    self.chart.style = bar_chart.BarChartStyle(None, 0, 1)
     self.chart.display._width = 640
     self.chart.display._height = 120
     self.assertEqual(self.Param('chbh'), '2,0,1')
@@ -142,11 +142,11 @@ class BarChartTest(base_encoder_test.XYChartTest):
   def testAutoBarSpacing(self):
     self.AddToChart(self.chart, [1, 2, 3])
     self.AddToChart(self.chart, [4, 5, 6])
-    self.chart.style = bar_chart.BarStyle(10, 1, None)
+    self.chart.style = bar_chart.BarChartStyle(10, 1, None)
     self.assertEqual(self.Param('chbh'), '10,1,2')
-    self.chart.style = bar_chart.BarStyle(10, None, 2)
+    self.chart.style = bar_chart.BarChartStyle(10, None, 2)
     self.assertEqual(self.Param('chbh'), '10,1,2')
-    self.chart.style = bar_chart.BarStyle(10, None, 1)
+    self.chart.style = bar_chart.BarChartStyle(10, None, 1)
     self.assertEqual(self.Param('chbh'), '10,0,1')
 
   def testStackedDataScaling(self):

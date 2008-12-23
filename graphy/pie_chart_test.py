@@ -23,14 +23,16 @@ from graphy import graphy_test
 
 
 class SegmentTest(graphy_test.GraphyTest):
-  
+
+  def setUp(self):
+    warnings.resetwarnings()
+
   # TODO: remove once the deprecation warning is removed
   def testSegmentOrder(self):
     # Deprecated approach
     warnings.filterwarnings('error')
-    self.assertRaises(DeprecationWarning, pie_chart.Segment, 1, 
+    self.assertRaises(DeprecationWarning, pie_chart.Segment, 1,
       '0000FF', 'label')
-    warnings.resetwarnings()
 
     # New order
     s = pie_chart.Segment(1, 'label', '0000FF')
@@ -39,6 +41,9 @@ class SegmentTest(graphy_test.GraphyTest):
 
 
 class PieChartTest(graphy_test.GraphyTest):
+
+  def setUp(self):
+    warnings.resetwarnings()
 
   def testNegativeSegmentSizes(self):
     self.assertRaises(AssertionError, pie_chart.PieChart,
@@ -53,9 +58,8 @@ class PieChartTest(graphy_test.GraphyTest):
     chart = pie_chart.PieChart()
     # Deprecated approach
     warnings.filterwarnings('error')
-    self.assertRaises(DeprecationWarning, chart.AddSegment, 1, 
+    self.assertRaises(DeprecationWarning, chart.AddSegment, 1,
       '0000FF', 'label')
-    warnings.resetwarnings()
 
     # New order
     chart.AddSegment(1, 'label', '0000FF')
@@ -66,13 +70,11 @@ class PieChartTest(graphy_test.GraphyTest):
   def testAddSegmentsOrder(self):
     chart = pie_chart.PieChart()
     # Deprecated approach
-    warnings.resetwarnings()
     warnings.filterwarnings('error')
     # This test conflicts with testAddSegmentOrder.  It passes in isolation.  I
     # don't know what the deal is.
-    #self.assertRaises(DeprecationWarning, chart.AddSegments, [1], 
+    #self.assertRaises(DeprecationWarning, chart.AddSegments, [1],
     #  ['0000FF'], ['label'])
-    warnings.resetwarnings()
 
     # New order
     chart.AddSegments([1], ['label'], ['0000FF'])

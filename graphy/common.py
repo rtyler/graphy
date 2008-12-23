@@ -55,10 +55,14 @@ class Marker(object):
     self.color = color
     self.size = size
 
-# TODO: might not be a good idea to be mixing content & style here.  We
-# are combining the hard data with the colors & linestyles used.  Seems odd.
-# An example of oddity: A DataSeries graphed on a barchart probably should have
-# a BarStyle, not a LineStyle.
+
+class _BasicStyle(object):
+  """Basic style object.  Used internally."""
+
+  def __init__(self, color):
+    self.color = color
+
+
 class DataSeries(object):
 
   """Represents one data series for a chart (both data & presentation
@@ -72,8 +76,8 @@ class DataSeries(object):
              do not have a label then they will have an empty description in
              the legend.  This is currently a limitation in the Google Chart
              API.
-    color:   Hex string, like '0000ff' for blue
-    style:   A LineStyle object.
+    style:   A chart-type-specific style object.  (LineStyle for LineChart,
+             BarsStyle for BarChart, etc.)
     markers: List of (x, m) tuples where m is a Marker object and x is the
              x-axis value to place it at.
 
@@ -87,22 +91,49 @@ class DataSeries(object):
                For 'r', you can attach to any line, specify the starting
                y-value for x and the ending y-value for size.  Y, in this case,
                is becase 0.0 (bottom) and 1.0 (top).
+    color:   DEPRECATED
   """
 
-  # TODO: Should color & style be optional?
   # TODO: Should we require the points list to be non-empty ?
-  def __init__(self, points, label=None, color=None, style=None, markers=None):
+  # TODO: Do markers belong here?  They are really only used for LineCharts
+  def __init__(self, points, label=None, style=None, markers=None, color=None):
     """Construct a DataSeries.  See class docstring for details on args."""
     if label is not None and util._IsColor(label):
       warnings.warn('Your code may be broken! Label is a hex triplet.  Maybe '
                     'it is a color? The old argument order (color & style '
-                    'before label) is deprecated.', DeprecationWarning, 
+                    'before label) is deprecated.', DeprecationWarning,
                     stacklevel=2)
+    if color is not None:
+      warnings.warn('Passing color is deprecated.  Pass a style object '
+                    'instead.', DeprecationWarning, stacklevel=2)
+      # Attempt to fix it for them.  If they also passed a style, honor it.
+      if style is None:  
+        style = _BasicStyle(color)
+    if style is not None and isinstance(style, basestring):
+      warnings.warn('Your code is broken! Style is a string, not an object. '
+                    'Maybe you are passing a color?  Passing color is '
+                    'deprecated; pass a style object instead.',
+                    DeprecationWarning, stacklevel=2)
+    if style is None:
+      style = _BasicStyle(None)
     self.data = points
-    self.color = color
     self.style = style
     self.markers = markers or []
     self.label = label
+
+  def _GetColor(self):
+    warnings.warn('DataSeries.color is deprecated, use '
+                  'DataSeries.style.color instead.', DeprecationWarning,
+                  stacklevel=2)
+    return self.style.color
+
+  def _SetColor(self, color):
+    warnings.warn('DataSeries.color is deprecated, use '
+                  'DataSeries.style.color instead.', DeprecationWarning,
+                  stacklevel=2)
+    self.style.color = color
+
+  color = property(_GetColor, _SetColor)
 
 
 class AxisPosition(object):
@@ -224,9 +255,9 @@ class BaseChart(object):
     although bar charts would use 'bottom' and 'top').
     """
     return self._axes[AxisPosition.LEFT] + self._axes[AxisPosition.RIGHT]
-  
+
   def GetIndependentAxes(self):
-    """Return any independent axes (normally top & bottom, although horizontal 
+    """Return any independent axes (normally top & bottom, although horizontal
     bar charts use left & right by default).
     """
     return self._axes[AxisPosition.TOP] + self._axes[AxisPosition.BOTTOM]

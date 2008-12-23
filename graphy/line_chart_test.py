@@ -29,6 +29,9 @@ from graphy import graphy_test
 
 class LineChartTest(graphy_test.GraphyTest):
 
+  def tearDown(self):
+    warnings.resetwarnings()
+
   # TODO: remove once the deprecation warning is removed
   def testAddLineArgumentOrder(self):
     x = common.Marker(common.Marker.x, '0000ff', 5)
@@ -36,7 +39,7 @@ class LineChartTest(graphy_test.GraphyTest):
     # Deprecated approach
     chart = line_chart.LineChart()
     warnings.filterwarnings("error")
-    self.assertRaises(DeprecationWarning, chart.AddLine, [1, 2, 3], 
+    self.assertRaises(DeprecationWarning, chart.AddLine, [1, 2, 3],
       'label', [x], 'color')
 
     # New order
@@ -44,7 +47,7 @@ class LineChartTest(graphy_test.GraphyTest):
     chart.AddLine([1, 2, 3], 'label', 'color', markers=[x])
     self.assertEqual('label', chart.data[0].label)
     self.assertEqual([x], chart.data[0].markers)
-    self.assertEqual('color', chart.data[0].color)
+    self.assertEqual('color', chart.data[0].style.color)
 
 class LineStyleTest(graphy_test.GraphyTest):
 

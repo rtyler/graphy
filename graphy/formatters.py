@@ -61,17 +61,17 @@ class AutoColor(object):
   def __call__(self, chart):
     index = -1
     for series in chart.data:
-      if series.color is None:
+      if series.style.color is None:
         index += 1
         if index >= len(self.colors):
           index = 0
-        series.color = self.colors[index]
+        series.style.color = self.colors[index]
 
 
 class AutoScale(object):
-  """If you don't set min/max on the dependent axes, this fills them in 
+  """If you don't set min/max on the dependent axes, this fills them in
   automatically by calculating min/max dynamically from the data.
-  
+
   You can set just min or just max and this formatter will fill in the other
   value for you automatically.  For example, if you only set min then this will
   set max automatically, but leave min untouched.
@@ -99,7 +99,7 @@ class AutoScale(object):
     min_value, max_value = chart.GetMinMaxValues()
     if None in (min_value, max_value):
       return  # No data.  Nothing to do.
-    
+
     # Honor user's choice, if they've picked min/max.
     for axis in chart.GetDependentAxes():
       if axis.min is not None:

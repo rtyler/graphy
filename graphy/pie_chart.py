@@ -37,9 +37,10 @@ class Segment(common.DataSeries):
                     'The old argument order (color before label) is '
                     'deprecated.',
                     DeprecationWarning, stacklevel=2)
-    super(Segment, self).__init__([size], label, color)
+    style = common._BasicStyle(color)
+    super(Segment, self).__init__([size], label=label, style=style)
     assert size >= 0
-  
+
   def _GetSize(self):
     return self.data[0]
 
@@ -49,6 +50,16 @@ class Segment(common.DataSeries):
 
   size = property(_GetSize, _SetSize,
                   doc = """The relative size of this pie segment.""")
+
+  # Since Segments are so simple, provide color for convenience.
+  def _GetColor(self):
+    return self.style.color
+
+  def _SetColor(self, color):
+    self.style.color = color
+
+  color = property(_GetColor, _SetColor,
+                   doc = """The color of this pie segment.""")
 
 
 class PieChart(common.BaseChart):

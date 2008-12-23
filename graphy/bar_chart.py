@@ -23,7 +23,17 @@ from graphy import common
 from graphy import util
 
 
-class BarStyle(object):
+class BarsStyle(object):
+  """Style of a series of bars in a BarChart
+
+  Object Attributes:
+    color:  Hex string, like '00ff00' for green
+  """
+  def __init__(self, color):
+    self.color = color
+
+
+class BarChartStyle(object):
   """Represents the style for bars on a BarChart.
 
   Any of the object attributes may be set to None, in which case the
@@ -40,7 +50,7 @@ class BarStyle(object):
 
   def __init__(self, bar_thickness=None,
                bar_gap=_DEFAULT_BAR_GAP, group_gap=_DEFAULT_GROUP_GAP):
-    """Create a new BarStyle.
+    """Create a new BarChartStyle.
 
     Args:
      bar_thickness: The thickness of a bar, in pixels. Set this to None if
@@ -54,13 +64,21 @@ class BarStyle(object):
     self.group_gap = group_gap
 
 
+class BarStyle(BarChartStyle):
+
+  def __init__(self, *args, **kwargs):
+    warnings.warn('BarStyle is deprecated.  Use BarChartStyle.',
+                  DeprecationWarning, stacklevel=2)
+    super(BarStyle, self).__init__(*args, **kwargs)
+
+
 class BarChart(common.BaseChart):
   """Represents a bar chart.
 
   Object attributes:
     vertical: if True, the bars will be vertical. Default is True.
     stacked: if True, the bars will be stacked. Default is False.
-    style: The BarStyle for all bars on this chart, specifying bar
+    style: The BarChartStyle for all bars on this chart, specifying bar
       thickness and gaps between bars.
   """
 
@@ -71,7 +89,7 @@ class BarChart(common.BaseChart):
       self.AddBars(points)
     self.vertical = True
     self.stacked = False
-    self.style = BarStyle(None, None, None) # full auto 
+    self.style = BarChartStyle(None, None, None) # full auto
 
   def AddBars(self, points, label=None, color=None):
     """Add a series of bars to the chart.
@@ -88,26 +106,27 @@ class BarChart(common.BaseChart):
                     'Label is a hex triplet.  Maybe it is a color? The '
                     'old argument order (color before label) is deprecated.',
                     DeprecationWarning, stacklevel=2)
-    series = common.DataSeries(points, label=label, color=color, style=None)
+    style = BarsStyle(color)
+    series = common.DataSeries(points, label=label, style=style)
     self.data.append(series)
     return series
-  
+
   def GetDependentAxes(self):
     """Get the dependendant axes, which depend on orientation."""
     if self.vertical:
-      return (self._axes[common.AxisPosition.LEFT] + 
+      return (self._axes[common.AxisPosition.LEFT] +
               self._axes[common.AxisPosition.RIGHT])
     else:
       return (self._axes[common.AxisPosition.TOP] +
               self._axes[common.AxisPosition.BOTTOM])
-  
+
   def GetIndependentAxes(self):
     """Get the independendant axes, which depend on orientation."""
     if self.vertical:
       return (self._axes[common.AxisPosition.TOP] +
               self._axes[common.AxisPosition.BOTTOM])
     else:
-      return (self._axes[common.AxisPosition.LEFT] + 
+      return (self._axes[common.AxisPosition.LEFT] +
               self._axes[common.AxisPosition.RIGHT])
 
   def GetDependentAxis(self):

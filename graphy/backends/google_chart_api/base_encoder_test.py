@@ -42,14 +42,15 @@ class TestChart(common.BaseChart):
       self.AddData(points)
 
   def AddData(self, points, color=None, label=None):
-    series = common.DataSeries(points, color=color, style=None, label=label)
+    style = common._BasicStyle(color)
+    series = common.DataSeries(points, style=style, label=label)
     self.data.append(series)
     return series
 
 
 class BaseChartTest(graphy_test.GraphyTest):
   """Base class for all chart-specific tests"""
-  
+
   def ExpectAxes(self, labels, positions):
     """Helper to test that the chart axis spec matches the expected values."""
     self.assertEqual(self.Param('chxl'), labels)
@@ -250,7 +251,7 @@ class XYChartTest(BaseChartTest):
     series = self.AddToChart(self.chart, points, '#000000')
     self.assertTrue(series is not None)
     self.assertEqual(series.data, points)
-    self.assertEqual(series.color, '#000000')
+    self.assertEqual(series.style.color, '#000000')
 
   def testFlatSeries(self):
     """Make sure we handle scaling of a flat data series correctly (there are

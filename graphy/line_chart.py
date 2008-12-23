@@ -32,6 +32,8 @@ class LineStyle(object):
     width: Width of the line
     on:    Length of a line segment (for dashed/dotted lines)
     off:   Length of a break (for dashed/dotted lines)
+    color: Color of the line.  A hex string, like 'ff0000' for red.  Optional,
+           AutoColor will fill this in for you automatically if empty.
 
   Some common styles, such as LineStyle.dashed, are available:
     solid
@@ -52,11 +54,12 @@ class LineStyle(object):
   DASHED = (8, 4)
   DOTTED = (2, 4)
 
-  def __init__(self, width, on, off):
+  def __init__(self, width, on, off, color=None):
     """Construct a LineStyle.  See class docstring for details on args."""
     self.width = width
     self.on = on
     self.off = off
+    self.color = color
 
 
 LineStyle.solid  = LineStyle(1, 1, 0)
@@ -97,8 +100,9 @@ class LineChart(common.BaseChart):
                     'You passed a list of Markers instead of a color. The '
                     'old argument order (markers before color) is deprecated.',
                     DeprecationWarning, stacklevel=2)
-    style = LineStyle(width, pattern[0], pattern[1])
-    series = common.DataSeries(points, label, color, style, markers)
+    style = LineStyle(width, pattern[0], pattern[1], color=color)
+    series = common.DataSeries(points, label=label, style=style,
+                               markers=markers)
     self.data.append(series)
     return series
 
