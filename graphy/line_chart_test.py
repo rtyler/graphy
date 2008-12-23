@@ -23,7 +23,7 @@ from graphy import line_chart
 from graphy import graphy_test
 
 
-# TODO: All the different charts are expect to support a similar API (like
+# TODO: All the different charts are expected to support a similar API (like
 # having a display object, having a list of data series, axes, etc.).  Add some
 # tests that run against all the charts to make sure they conform to the API.
 
