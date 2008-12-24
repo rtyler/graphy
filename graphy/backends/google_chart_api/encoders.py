@@ -299,73 +299,45 @@ class BarChartEncoder(BaseChartEncoder):
         out['chp'] = -min/float(max - min)
     return out
 
-  def _BuildBarChartStyle(self, chart, bar_thickness, bar_gap, group_gap):
-    """Helper method that will fill in the missing values.
-
-    Args:
-      chart: the chart
-      bar_thickness: bar thickness in pixels, or None for auto detection
-      bar_gap: gap between bars in pixels, or None for auto detection
-      group_gap: gap between bar groups in pixels, or None for auto detection
-
-    Returns:
-      A tuple of (bar_thickness, bar_gap, group_gap), filled in with
-      auto-generated values
-    """
-    # Amount of space we have to work with
-    if chart.vertical:
-      space = self._width
-    else:
-      space = self._height
-    assert(space is not None)
-
-    # Number of individual bars (ignoring groups for now)
-    num_bars = max(len(series.data) for series in chart.data)
-    if not num_bars:
-      return (bar_thickness, bar_gap, group_gap)
-
-    if bar_gap is None and group_gap is not None:
-        bar_gap = max(0, group_gap // 2)
-
-    if group_gap is None and bar_gap is not None:
-        group_gap = int(bar_gap * 2)
-
-    if bar_thickness is None:
-      if chart.stacked:
-        if bar_gap is not None:
-          bar_thickness = max(1,
-                              (space - bar_gap * (num_bars - 1)) // num_bars)
-      else:
-        if bar_gap is not None and group_gap is not None:
-          num_groups = num_bars
-          bars_per_group = len(chart.data)
-          group_size = (space - (group_gap *
-                                 (num_groups - 1))) / float(num_groups)
-          if group_size > 0:
-            bar_thickness = (group_size - bar_gap *
-                             (bars_per_group - 1)) / float(bars_per_group)
-            bar_thickness = max(1, int(bar_thickness))
-          else:
-            bar_thickness = 1
-
-
-    return (bar_thickness, bar_gap, group_gap)
-
   def _ApplyBarChartStyle(self, chart):
     """If bar style is specified, fill in the missing data and apply it."""
     # sanity checks
     if chart.style is None or not chart.data:
       return {}
-    # fill in missing values
-    (bar_thickness, bar_gap, group_gap) = self._BuildBarChartStyle(chart,
-        chart.style.bar_thickness, chart.style.bar_gap, chart.style.group_gap)
-    # format the values
+
+    (bar_thickness, bar_gap, group_gap) = (chart.style.bar_thickness,
+                                           chart.style.bar_gap,
+                                           chart.style.group_gap)
+    # Auto-size bar/group gaps
+    if bar_gap is None and group_gap is not None:
+        bar_gap = max(0, group_gap / 2)
+        if not chart.style.use_fractional_gap_spacing:
+          bar_gap = int(bar_gap)
+    if group_gap is None and bar_gap is not None:
+        group_gap = max(0, bar_gap * 2)
+        
+    # Set bar thickness to auto if it is missing
+    if bar_thickness is None:
+      if chart.style.use_fractional_gap_spacing:
+        bar_thickness = 'r'
+      else:
+        bar_thickness = 'a'
+    else:
+      # Convert gap sizes to pixels if needed
+      if chart.style.use_fractional_gap_spacing:
+        if bar_gap:
+          bar_gap = int(bar_thickness * bar_gap)
+        if group_gap:
+          group_gap = int(bar_thickness * group_gap)
+
+    # Build a valid spec; ignore group gap if chart is stacked,
+    # since there are no groups in that case
     spec = [bar_thickness]
     if bar_gap is not None:
       spec.append(bar_gap)
       if group_gap is not None and not chart.stacked:
         spec.append(group_gap)
-    return util.JoinLists(bar_height = spec)
+    return util.JoinLists(bar_size = spec)
 
   def __GetStyle(self):
     warnings.warn(self.__STYLE_DEPREACTION, DeprecationWarning, stacklevel=2)

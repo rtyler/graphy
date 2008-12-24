@@ -112,32 +112,16 @@ class BarChartTest(base_encoder_test.XYChartTest):
     self.chart.display._width = 100
     self.chart.display._height = 1000
     self.chart.stacked = False
-    self.assertEqual(self.Param('chbh'), '13,3,6')
+    self.assertEqual(self.Param('chbh'), 'a,3,6')
     self.chart.stacked = True
-    self.assertEqual(self.Param('chbh'), '31,3')
+    self.assertEqual(self.Param('chbh'), 'a,3')
     self.chart.vertical = False
     self.chart.stacked = False
-    self.assertEqual(self.Param('chbh'), '163,3,6')
+    self.assertEqual(self.Param('chbh'), 'a,3,6')
     self.chart.stacked = True
-    self.assertEqual(self.Param('chbh'), '331,3')
+    self.assertEqual(self.Param('chbh'), 'a,3')
     self.chart.display._height = 1
-    self.assertEqual(self.Param('chbh'), '1,3')
-
-  def testAutoBarSizeAliasing(self):
-    # Copied from signal.py -- make sure it works
-    left_channel = []
-    right_channel = []
-    for i in xrange(0, 360, 3):
-      left_channel.append(100.0 * math.sin(math.radians(i)))
-      right_channel.append(100.0 * math.sin(math.radians(i + 30)))
-    self.chart.AddBars(left_channel)
-    self.chart.AddBars(right_channel)
-    self.chart.display.enhanced_encoding = True
-    self.chart.stacked = False
-    self.chart.style = bar_chart.BarChartStyle(None, 0, 1)
-    self.chart.display._width = 640
-    self.chart.display._height = 120
-    self.assertEqual(self.Param('chbh'), '2,0,1')
+    self.assertEqual(self.Param('chbh'), 'a,3')
 
   def testAutoBarSpacing(self):
     self.AddToChart(self.chart, [1, 2, 3])
@@ -148,6 +132,25 @@ class BarChartTest(base_encoder_test.XYChartTest):
     self.assertEqual(self.Param('chbh'), '10,1,2')
     self.chart.style = bar_chart.BarChartStyle(10, None, 1)
     self.assertEqual(self.Param('chbh'), '10,0,1')
+    
+  def testFractionalAutoBarSpacing(self):
+    self.AddToChart(self.chart, [1, 2, 3])
+    self.AddToChart(self.chart, [4, 5, 6])
+    self.chart.style = bar_chart.BarChartStyle(10, 0.1, None,
+        use_fractional_gap_spacing=True)
+    self.assertEqual(self.Param('chbh'), '10,1,2')
+    self.chart.style = bar_chart.BarChartStyle(10, None, 0.2,
+        use_fractional_gap_spacing=True)
+    self.assertEqual(self.Param('chbh'), '10,1,2')
+    self.chart.style = bar_chart.BarChartStyle(10, None, 0.1,
+        use_fractional_gap_spacing=True)
+    self.assertEqual(self.Param('chbh'), '10,0,1')    
+    self.chart.style = bar_chart.BarChartStyle(None, 0.1, 0.2,
+        use_fractional_gap_spacing=True)
+    self.assertEqual(self.Param('chbh'), 'r,0.1,0.2')
+    self.chart.style = bar_chart.BarChartStyle(None, 0.1, None,
+        use_fractional_gap_spacing=True)
+    self.assertEqual(self.Param('chbh'), 'r,0.1,0.2')
 
   def testStackedDataScaling(self):
     self.AddToChart(self.chart, [10, 20, 30])
