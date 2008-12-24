@@ -117,7 +117,7 @@ class PieChart(common.BaseChart):
     """
     warnings.warn('PieChart.AddSeries is deprecated.  Call AddSegment or '
                   'AddSegments instead.', DeprecationWarning)
-    return self.AddSegment(Segment(points[0], color, label))
+    return self.AddSegment(Segment(points[0], color=color, label=label))
 
   def SetColors(self, *colors):
     """Change the colors of this chart to the specified list of colors.

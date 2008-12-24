@@ -232,7 +232,7 @@ class LineChartEncoder(BaseChartEncoder):
 
   def _GetFormatters(self):
     out = super(LineChartEncoder, self)._GetFormatters()
-    out.append(self._GetLineStyles)
+    out.insert(-2, self._GetLineStyles)
     return out
 
 
@@ -281,8 +281,10 @@ class BarChartEncoder(BaseChartEncoder):
 
   def _GetFormatters(self):
     out = super(BarChartEncoder, self)._GetFormatters()
-    out.append(self._ZeroPoint)
-    out.append(self._ApplyBarChartStyle)
+    # TODO: Add a test to ensure extra_params overwrites everything.
+    # insert at -2 to allow extra_params to overwrite everything
+    out.insert(-2, self._ZeroPoint)
+    out.insert(-2, self._ApplyBarChartStyle)
     return out
 
   def _ZeroPoint(self, chart):

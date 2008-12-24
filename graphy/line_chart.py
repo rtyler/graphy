@@ -111,8 +111,9 @@ class LineChart(common.BaseChart):
     """DEPRECATED"""
     warnings.warn('LineChart.AddSeries is deprecated.  Call AddLine instead. ',
                   DeprecationWarning, stacklevel=2)
-    return super(LineChart, self).AddSeries(points, color, style,
-                                            markers, label)
+    return self.AddLine(points, color=color, width=style.width,
+                        pattern=(style.on, style.off), markers=markers,
+                        label=label)
 
 
 class Sparkline(LineChart):

@@ -107,7 +107,7 @@ class DataSeries(object):
       warnings.warn('Passing color is deprecated.  Pass a style object '
                     'instead.', DeprecationWarning, stacklevel=2)
       # Attempt to fix it for them.  If they also passed a style, honor it.
-      if style is None:  
+      if style is None:
         style = _BasicStyle(color)
     if style is not None and isinstance(style, basestring):
       warnings.warn('Your code is broken! Style is a string, not an object. '
@@ -246,7 +246,9 @@ class BaseChart(object):
     warnings.warn('AddSeries is deprecated.  Instead, call AddLine for '
                   'LineCharts, AddBars for BarCharts, AddSegment for '
                   'PieCharts ', DeprecationWarning, stacklevel=2)
-    series = DataSeries(points, color, style, markers, label)
+    # TODO: add a test to make sure this deprecated function still works.
+    series = DataSeries(points, color=color, style=style, markers=markers,
+                        label=label)
     self.data.append(series)
     return series
 
