@@ -41,15 +41,20 @@ class BarChartStyle(object):
 
   Object Attributes:
     bar_thickness: The thickness of a bar, in pixels.
-    bar_gap: The gap between bars, in pixels.
-    group_gap: The gap between groups of bars, in pixels.
+    bar_gap: The gap between bars, in pixels, or as a fraction of bar thickness
+        if use_fractional_gap_spacing is True.
+    group_gap: The gap between groups of bars, in pixels, or as a fraction of
+        bar thickness if use_fractional_gap_spacing is True.
+    use_fractional_gap_spacing: if True, bar_gap and group_gap specify gap
+        sizes as a fraction of bar width. Default is False.
   """
 
   _DEFAULT_GROUP_GAP = 8
   _DEFAULT_BAR_GAP = 4
 
   def __init__(self, bar_thickness=None,
-               bar_gap=_DEFAULT_BAR_GAP, group_gap=_DEFAULT_GROUP_GAP):
+               bar_gap=_DEFAULT_BAR_GAP, group_gap=_DEFAULT_GROUP_GAP,
+               use_fractional_gap_spacing=False):
     """Create a new BarChartStyle.
 
     Args:
@@ -62,6 +67,7 @@ class BarChartStyle(object):
     self.bar_thickness = bar_thickness
     self.bar_gap = bar_gap
     self.group_gap = group_gap
+    self.use_fractional_gap_spacing = use_fractional_gap_spacing
 
 
 class BarStyle(BarChartStyle):

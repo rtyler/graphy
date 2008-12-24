@@ -53,6 +53,7 @@ LONG_NAMES = dict(
   marker='chm',
   fill='chf',
   bar_size='chbh',
+  bar_height='chbh',
   label_color='chlc',
   signature='sig',
   output_format='chof',
@@ -75,6 +76,7 @@ JOIN_DELIMS = dict(
   data_series_label='|',
   label='|',
   bar_size=',',
+  bar_height=',',
 )
 
 
