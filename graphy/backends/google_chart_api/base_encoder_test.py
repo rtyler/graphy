@@ -89,10 +89,6 @@ class BaseChartTest(graphy_test.GraphyTest):
     self.chart.display.extra_params['test'] = 32
     self.assertEqual(self.Param('test'),  '32')
 
-  def testExtraParams(self):
-    self.chart.display.extra_params['test'] = 'test_param'
-    self.assertEqual(self.Param('test'),  'test_param')
-
   def testExtraParamsOverideDefaults(self):
     self.assertNotEqual(self.Param('cht'), 'test')  # Sanity check.
     self.chart.display.extra_params['cht'] = 'test'

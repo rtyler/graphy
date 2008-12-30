@@ -94,6 +94,13 @@ class BarChartTest(base_encoder_test.XYChartTest):
     self.chart.left.labels_positions = (1, 5)
     self.assertEqual(self.Param('chxr'), '0,1,5')
 
+  def testCanOverrideChbh(self):
+    self.chart.style = bar_chart.BarChartStyle(10, 3, 6)
+    self.AddToChart(self.chart, [1, 2, 3])
+    self.assertEqual(self.Param('chbh'), '10,3,6')
+    self.chart.display.extra_params['chbh'] = '5,5,2'
+    self.assertEqual(self.Param('chbh'), '5,5,2')
+
   def testDefaultBarChartStyle(self):
     self.assertNotIn('chbh', self.chart.display._Params(self.chart))
     self.chart.style = bar_chart.BarChartStyle(None, None, None)
@@ -132,7 +139,7 @@ class BarChartTest(base_encoder_test.XYChartTest):
     self.assertEqual(self.Param('chbh'), '10,1,2')
     self.chart.style = bar_chart.BarChartStyle(10, None, 1)
     self.assertEqual(self.Param('chbh'), '10,0,1')
-    
+
   def testFractionalAutoBarSpacing(self):
     self.AddToChart(self.chart, [1, 2, 3])
     self.AddToChart(self.chart, [4, 5, 6])
@@ -144,7 +151,7 @@ class BarChartTest(base_encoder_test.XYChartTest):
     self.assertEqual(self.Param('chbh'), '10,1,2')
     self.chart.style = bar_chart.BarChartStyle(10, None, 0.1,
         use_fractional_gap_spacing=True)
-    self.assertEqual(self.Param('chbh'), '10,0,1')    
+    self.assertEqual(self.Param('chbh'), '10,0,1')
     self.chart.style = bar_chart.BarChartStyle(None, 0.1, 0.2,
         use_fractional_gap_spacing=True)
     self.assertEqual(self.Param('chbh'), 'r,0.1,0.2')

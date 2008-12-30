@@ -27,6 +27,8 @@ class CommonTest(graphy_test.GraphyTest):
 
   def setUp(self):
     self.chart = google_chart_api.LineChart()
+
+  def tearDown(self):
     warnings.resetwarnings()
 
   def testDependentAxis(self):
@@ -64,6 +66,18 @@ class CommonTest(graphy_test.GraphyTest):
     bottom2 = c.AddAxis(common.AxisPosition.BOTTOM, common.Axis())
     self.assertEqual([c.left, c.right, right2], c.GetDependentAxes())
     self.assertEqual([c.top, c.bottom, bottom2], c.GetIndependentAxes())
+
+  # TODO: remove once AddSeries is deleted
+  def testAddSeries(self):
+    warnings.filterwarnings('ignore')
+    chart = common.BaseChart()
+    chart.AddSeries(points=[1, 2, 3], style='foo',
+                    markers='markers', label='label')
+    series = chart.data[0]
+    self.assertEqual(series.data, [1, 2, 3])
+    self.assertEqual(series.style, 'foo')
+    self.assertEqual(series.markers, 'markers')
+    self.assertEqual(series.label, 'label')
 
   # TODO: remove once the deprecation warning is removed
   def testDataSeriesStyles(self):

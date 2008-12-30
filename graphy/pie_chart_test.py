@@ -42,8 +42,20 @@ class SegmentTest(graphy_test.GraphyTest):
 
 class PieChartTest(graphy_test.GraphyTest):
 
-  def setUp(self):
+  def tearDown(self):
     warnings.resetwarnings()
+
+  # TODO: remove once AddSeries is deleted
+  def testAddSeries(self):
+    warnings.filterwarnings('ignore')
+    chart = pie_chart.PieChart()
+    chart.AddSeries(points=[1], color='color',
+                    markers='markers', label='label')
+    series = chart.data[0]
+    self.assertEqual(series.data, [1])
+    self.assertEqual(series.color, 'color')
+    self.assertEqual(series.markers, [])
+    self.assertEqual(series.label, 'label')
 
   def testNegativeSegmentSizes(self):
     self.assertRaises(AssertionError, pie_chart.PieChart,

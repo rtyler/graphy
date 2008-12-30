@@ -32,6 +32,20 @@ class LineChartTest(graphy_test.GraphyTest):
   def tearDown(self):
     warnings.resetwarnings()
 
+  # TODO: remove once AddSeries is deleted
+  def testAddSeries(self):
+    warnings.filterwarnings('ignore')
+    chart = line_chart.LineChart()
+    chart.AddSeries(points=[1, 2, 3], style=line_chart.LineStyle.solid,
+                    markers='markers', label='label')
+    series = chart.data[0]
+    self.assertEqual(series.data, [1, 2, 3])
+    self.assertEqual(series.style.width, line_chart.LineStyle.solid.width)
+    self.assertEqual(series.style.on, line_chart.LineStyle.solid.on)
+    self.assertEqual(series.style.off, line_chart.LineStyle.solid.off)
+    self.assertEqual(series.markers, 'markers')
+    self.assertEqual(series.label, 'label')
+
   # TODO: remove once the deprecation warning is removed
   def testAddLineArgumentOrder(self):
     x = common.Marker(common.Marker.x, '0000ff', 5)
