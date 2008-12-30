@@ -86,7 +86,6 @@ class SimpleDataEncoder:
   be dropped (encoded as '_').
   """
 
-  # TODO: merge this with the cs_client implementation.
   def __init__(self):
     self.prefix = 's:'
     self.code = string.ascii_uppercase + string.ascii_lowercase + string.digits

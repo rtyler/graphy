@@ -246,7 +246,6 @@ class BaseChart(object):
     warnings.warn('AddSeries is deprecated.  Instead, call AddLine for '
                   'LineCharts, AddBars for BarCharts, AddSegment for '
                   'PieCharts ', DeprecationWarning, stacklevel=2)
-    # TODO: add a test to make sure this deprecated function still works.
     series = DataSeries(points, color=color, style=style, markers=markers,
                         label=label)
     self.data.append(series)

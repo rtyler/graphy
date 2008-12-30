@@ -281,7 +281,6 @@ class BarChartEncoder(BaseChartEncoder):
 
   def _GetFormatters(self):
     out = super(BarChartEncoder, self)._GetFormatters()
-    # TODO: Add a test to ensure extra_params overwrites everything.
     # insert at -2 to allow extra_params to overwrite everything
     out.insert(-2, self._ZeroPoint)
     out.insert(-2, self._ApplyBarChartStyle)
@@ -315,7 +314,7 @@ class BarChartEncoder(BaseChartEncoder):
           bar_gap = int(bar_gap)
     if group_gap is None and bar_gap is not None:
         group_gap = max(0, bar_gap * 2)
-        
+
     # Set bar thickness to auto if it is missing
     if bar_thickness is None:
       if chart.style.use_fractional_gap_spacing:
