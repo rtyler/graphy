@@ -248,7 +248,7 @@ class BarChartEncoder(BaseChartEncoder):
 
   """Helper class to encode BarChart objects into Google Chart URLs."""
 
-  __STYLE_DEPREACTION = ('BarChart.display.style is deprecated.' +
+  __STYLE_DEPRECATION = ('BarChart.display.style is deprecated.' +
                          ' Use BarChart.style, instead.')
 
   def __init__(self, chart, style=None):
@@ -259,7 +259,7 @@ class BarChartEncoder(BaseChartEncoder):
     """
     super(BarChartEncoder, self).__init__(chart)
     if style is not None:
-      warnings.warn(self.__STYLE_DEPREACTION, DeprecationWarning, stacklevel=2)
+      warnings.warn(self.__STYLE_DEPRECATION, DeprecationWarning, stacklevel=2)
       chart.style = style
 
   def _GetType(self, chart):
@@ -339,14 +339,14 @@ class BarChartEncoder(BaseChartEncoder):
     return util.JoinLists(bar_size = spec)
 
   def __GetStyle(self):
-    warnings.warn(self.__STYLE_DEPREACTION, DeprecationWarning, stacklevel=2)
+    warnings.warn(self.__STYLE_DEPRECATION, DeprecationWarning, stacklevel=2)
     return self.chart.style
 
   def __SetStyle(self, value):
-    warnings.warn(self.__STYLE_DEPREACTION, DeprecationWarning, stacklevel=2)
+    warnings.warn(self.__STYLE_DEPRECATION, DeprecationWarning, stacklevel=2)
     self.chart.style = value
 
-  style=property(__GetStyle, __SetStyle, __STYLE_DEPREACTION)
+  style = property(__GetStyle, __SetStyle, __STYLE_DEPRECATION)
 
 
 class PieChartEncoder(BaseChartEncoder):
@@ -357,42 +357,74 @@ class PieChartEncoder(BaseChartEncoder):
     is3d: if True, draw a 3d pie chart. Default is False.
   """
 
-  def __init__(self, chart, is3d=False):
+  def __init__(self, chart, is3d=False, angle=None):
     """Construct a new PieChartEncoder.
 
     Args:
-      is3d: if True, draw a 3d pie chart. Default is False.
+      is3d: If True, draw a 3d pie chart. Default is False. If the pie chart
+        includes multiple pies, is3d must be set to False.
+      angle: Angle of rotation of the pie chart, in radians.
     """
     super(PieChartEncoder, self).__init__(chart)
     self.is3d = is3d
+    self.angle = None
+    
+  def _GetFormatters(self):
+    """Add a formatter for the chart angle."""
+    formatters = super(PieChartEncoder, self)._GetFormatters()
+    formatters.append(self._GetAngleParams)
+    return formatters  
 
   def _GetType(self, chart):
-    if self.is3d:
-      return {'chart_type': 'p3'}
+    if len(chart.data) > 1:
+      if self.is3d:
+        warnings.warn('3d charts with more than one pie not supported',
+                      RuntimeWarning, stacklevel=2)
+      chart_type = 'pc'
     else:
-      return {'chart_type': 'p'}
+      if self.is3d:
+        chart_type = 'p3'
+      else:
+        chart_type = 'p'
+    return {'chart_type': chart_type}
 
   def _GetDataSeriesParams(self, chart):
     """Collect params related to the data series."""
-    points = []
-    labels = []
-    for segment in chart.data:
-      if segment:
-        points.append(segment.size)
-        labels.append(segment.label or '_')
 
-    if points:
-      max_val = max(points)
-    else:
-      max_val = 1
+    pie_points = []
+    labels = []
+    max_val = 1
+    for pie in chart.data:
+      points = []
+      for segment in pie:
+        if segment:
+          points.append(segment.size)
+          max_val = max(max_val, segment.size)
+          labels.append(segment.label or '')
+      if points:
+        pie_points.append(points)
+
     encoder = self._GetDataEncoder(chart)
-    result = util.EncodeData(chart, [points], 0, max_val, encoder)
+    result = util.EncodeData(chart, pie_points, 0, max_val, encoder)
     result.update(util.JoinLists(label=labels))
     return result
 
   def _GetColors(self, chart):
-    colors = []
-    for segment in chart.data:
-      if segment and segment.color:
-        colors.append(segment.color)
+    if chart._colors:
+      # Colors were overridden by the user
+      colors = chart._colors
+    else:
+      # Build the list of colors from individual segments
+      colors = []
+      for pie in chart.data:
+        for segment in pie:
+          if segment and segment.color:
+            colors.append(segment.color)
     return util.JoinLists(color = colors)
+  
+  def _GetAngleParams(self, chart):
+    """If the user specified an angle, add it to the params."""
+    if self.angle:
+      return {'chp' : str(self.angle)}
+    else:
+      return {}

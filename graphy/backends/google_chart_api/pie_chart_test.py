@@ -16,6 +16,8 @@
 
 """Unittest for Graphy and Google Chart API backend."""
 
+import warnings
+
 from graphy import graphy_test
 from graphy import pie_chart
 from graphy.backends import google_chart_api
@@ -25,6 +27,10 @@ from graphy.backends.google_chart_api import base_encoder_test
 # Extend BaseChartTest so that we pick up & repeat all the line tests which
 # Pie Charts should continue to satisfy
 class PieChartTest(base_encoder_test.BaseChartTest):
+
+  def tearDown(self):
+    warnings.resetwarnings()
+    super(PieChartTest, self).tearDown()
 
   def GetChart(self, *args, **kwargs):
     return google_chart_api.PieChart(*args, **kwargs)
@@ -60,18 +66,36 @@ class PieChartTest(base_encoder_test.BaseChartTest):
     self.assertEqual(self.Param('chd'), 's:Pfu9')
     self.assertEqual(self.Param('chl'), 'Mouse|Cat|Dog|Horse')
 
-  def testAddMultipleSegments(self):
-    self.chart.AddSegments([1,2,3],
-                           ['Mouse', 'Cat', 'Dog'],
-                           ['ff0000', '00ff00', '0000ff'])
+  def testMultiplePies(self):
+    self.chart.AddPie([1,2,3],
+                      ['Mouse', 'Cat', 'Dog'],
+                      ['ff0000', '00ff00', '0000ff'])    
     self.assertEqual(self.Param('chd'), 's:Up9')
     self.assertEqual(self.Param('chl'), 'Mouse|Cat|Dog')
     self.assertEqual(self.Param('chco'), 'ff0000,00ff00,0000ff')
+    self.assertEqual(self.Param('cht'), 'p')
     # skip two colors
-    self.chart.AddSegments([4,5,6], ['Horse', 'Moose', 'Elephant'], ['cccccc'])
-    self.assertEqual(self.Param('chd'), 's:KUfpz9')
+    self.chart.AddPie([4,5,6], ['Horse', 'Moose', 'Elephant'], ['cccccc'])
+    self.assertEqual(self.Param('chd'), 's:KUf,pz9')
     self.assertEqual(self.Param('chl'), 'Mouse|Cat|Dog|Horse|Moose|Elephant')
     self.assertEqual(self.Param('chco'), 'ff0000,00ff00,0000ff,cccccc')
+    self.assertEqual(self.Param('cht'), 'pc')
+
+  def testMultiplePiesNo3d(self):
+    chart = self.GetChart([1,2,3], ['Mouse', 'Cat', 'Dog'])
+    chart.AddPie([4,5,6], ['Horse', 'Moose', 'Elephant'])
+    chart.display.is3d = True
+    warnings.filterwarnings('error')
+    self.assertRaises(RuntimeWarning, chart.display.Url, 320, 240)
+
+  def testAddSegmentByIndex(self):
+    self.chart = self.GetChart([1,2,3], ['Mouse', 'Cat', 'Dog'])
+    self.chart.AddSegment(4, 'Horse', pie_index=0)
+    self.assertEqual(self.Param('chd'), 's:Pfu9')
+    self.assertEqual(self.Param('chl'), 'Mouse|Cat|Dog|Horse')
+    self.chart.AddPie([4,5], ['Apple', 'Orange'], [])
+    self.chart.AddSegment(6, 'Watermelon', pie_index=1)
+    self.assertEqual(self.Param('chd'), 's:KUfp,pz9')
 
   def testSetColors(self):
     self.assertEqual(self.Param('chco'), '')
@@ -84,7 +108,7 @@ class PieChartTest(base_encoder_test.BaseChartTest):
 
   def testHugeSegmentSizes(self):
     self.chart = self.GetChart([1000000000000000L,3000000000000000L],
-                                      ['Big', 'Uber'])
+                               ['Big', 'Uber'])
     self.assertEqual(self.Param('chd'), 's:U9')
     self.chart.display.enhanced_encoding = True
     self.assertEqual(self.Param('chd'), 'e:VV..')
@@ -97,6 +121,13 @@ class PieChartTest(base_encoder_test.BaseChartTest):
     self.assertEquals(segment1.size, 1)
     self.assertEquals(segment2.size, 3)
     self.assertEqual(self.Param('chd'), 's:U9')
+
+  def testChartAngle(self):
+    self.assertTrue('chp' not in self.chart.display._Params(self.chart))
+    self.chart.display.angle = 3.1415
+    self.assertEqual(self.Param('chp'), '3.1415')
+    self.chart.display.angle = 0
+    self.assertTrue('chp' not in self.chart.display._Params(self.chart))
 
 
 if __name__ == '__main__':

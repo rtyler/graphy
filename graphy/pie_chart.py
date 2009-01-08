@@ -63,13 +63,21 @@ class Segment(common.DataSeries):
 
 
 class PieChart(common.BaseChart):
-  """Represent a pie chart."""
+  """Represents a pie chart.
+
+  The pie chart consists of a single "pie" by default, but additional pies
+  may be added using the AddPie method. The Google Chart API will display
+  the pies as concentric circles, with pie #0 on the inside; other backends
+  may display the pies differently.
+  """
 
   def __init__(self, points=None, labels=None, colors=None):
-    """Constructor for PieChart objects
+    """Constructor for PieChart objects.
+
+    Creates a pie chart with a single pie.
 
     Args:
-      data_points: A list of data points for the pie chart;
+      points: A list of data points for the pie chart;
               i.e., relative sizes of the pie segments
       labels: A list of labels for the pie segments.
               TODO: Allow the user to pass in None as one of
@@ -80,23 +88,44 @@ class PieChart(common.BaseChart):
     """
     super(PieChart, self).__init__()
     self.formatters = []
+    self._colors = None
     if points:
-      # BUG: This crashes if you specify points but not labels
-      self.AddSegments(points, labels, colors)
+      self.AddPie(points, labels, colors)
 
-  def AddSegments(self, points, labels, colors):
-    """Add more segments to this pie chart."""
+  def AddPie(self, points, labels=None, colors=None):
+    """Add a whole pie to the chart.
+
+    Args:
+      points: A list of pie segment sizes
+      labels: A list of labels for the pie segments
+      colors: A list of colors for the segments. Missing colors will be chosen
+          automatically.
+    Return:
+      The index of the newly added pie.
+    """
     num_colors = len(colors or [])
+    num_labels = len(labels or [])
+    pie_index = len(self.data)
+    self.data.append(list())
     for i, pt in enumerate(points):
       assert pt >= 0
-      label = labels[i]
+      label = None
+      if i < num_labels:
+        label = labels[i]
       color = None
       if i < num_colors:
         color = colors[i]
-      self.AddSegment(pt, label=label, color=color)
+      self.AddSegment(pt, label=label, color=color, pie_index=pie_index)
+    return pie_index
 
-  def AddSegment(self, size, label=None, color=None):
-    """Add a pie segment to this chart, and return the segment."""
+  def AddSegment(self, size, label=None, color=None, pie_index=0):
+    """Add a pie segment to this chart, and return the segment.
+
+    size: The size of the segment
+    label: The label for the segment
+    color: The color of the segment, or None to automatically choose the color
+    pie_index: The index of the pie that will receive the new segment.
+    """
     if isinstance(size, Segment):
       warnings.warn("AddSegment(segment) is deprecated.  Use AddSegment(size, "
                     "label, color) instead",  DeprecationWarning, stacklevel=2)
@@ -104,30 +133,18 @@ class PieChart(common.BaseChart):
     else:
       segment = Segment(size, label=label, color=color)
     assert segment.size >= 0
-    self.data.append(segment)
+    if pie_index == 0 and not self.data:
+      # Create the default pie
+      self.data.append(list())
+    self.data[pie_index].append(segment)
     return segment
 
-  def AddSeries(self, points, color=None, style=None, markers=None, label=None):
-    """DEPRECATED
-
-    Add a new segment to the chart and return it.
-
-    The segment must contain exactly one data point; all parameters
-    other than color and label are ignored.
-    """
-    warnings.warn('PieChart.AddSeries is deprecated.  Call AddSegment or '
-                  'AddSegments instead.', DeprecationWarning)
-    return self.AddSegment(Segment(points[0], color=color, label=label))
 
   def SetColors(self, *colors):
     """Change the colors of this chart to the specified list of colors.
 
-    Missing colors will be interpolated by the server.
+    Note that this will completely override the individual colors specified
+    in the pie segments. Missing colors will be interpolated, so that the
+    list of colors covers all segments in all the pies.
     """
-    num_colors = len(colors)
-    assert num_colors <= len(self.data)
-    for i,segment in enumerate(self.data):
-      if i >= num_colors:
-        segment.color = None
-      else:
-        segment.color = colors[i]
+    self._colors = colors
