@@ -65,6 +65,21 @@ class PieChartTest(base_encoder_test.BaseChartTest):
     self.chart.AddSegment(4, label='Horse')
     self.assertEqual(self.Param('chd'), 's:Pfu9')
     self.assertEqual(self.Param('chl'), 'Mouse|Cat|Dog|Horse')
+    
+  # TODO: Remove this when AddSegments is removed   
+  def testAddMultipleSegments(self):
+    warnings.filterwarnings('ignore')
+    self.chart.AddSegments([1,2,3],
+                           ['Mouse', 'Cat', 'Dog'],
+                           ['ff0000', '00ff00', '0000ff'])
+    self.assertEqual(self.Param('chd'), 's:Up9')
+    self.assertEqual(self.Param('chl'), 'Mouse|Cat|Dog')
+    self.assertEqual(self.Param('chco'), 'ff0000,00ff00,0000ff')
+    # skip two colors    
+    self.chart.AddSegments([4,5,6], ['Horse', 'Moose', 'Elephant'], ['cccccc'])
+    self.assertEqual(self.Param('chd'), 's:KUfpz9')
+    self.assertEqual(self.Param('chl'), 'Mouse|Cat|Dog|Horse|Moose|Elephant')
+    self.assertEqual(self.Param('chco'), 'ff0000,00ff00,0000ff,cccccc')    
 
   def testMultiplePies(self):
     self.chart.AddPie([1,2,3],

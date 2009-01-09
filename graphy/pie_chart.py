@@ -106,9 +106,8 @@ class PieChart(common.BaseChart):
     num_colors = len(colors or [])
     num_labels = len(labels or [])
     pie_index = len(self.data)
-    self.data.append(list())
+    self.data.append([])
     for i, pt in enumerate(points):
-      assert pt >= 0
       label = None
       if i < num_labels:
         label = labels[i]
@@ -118,6 +117,19 @@ class PieChart(common.BaseChart):
       self.AddSegment(pt, label=label, color=color, pie_index=pie_index)
     return pie_index
 
+  def AddSegments(self, points, labels, colors):
+    """DEPRECATED."""
+    warnings.warn('PieChart.AddSegments is deprecated. Call AddPie instead. ',
+                  DeprecationWarning, stacklevel=2)
+    num_colors = len(colors or [])
+    for i, pt in enumerate(points):
+      assert pt >= 0
+      label = labels[i]
+      color = None
+      if i < num_colors:
+        color = colors[i]
+      self.AddSegment(pt, label=label, color=color)
+
   def AddSegment(self, size, label=None, color=None, pie_index=0):
     """Add a pie segment to this chart, and return the segment.
 
@@ -125,6 +137,8 @@ class PieChart(common.BaseChart):
     label: The label for the segment
     color: The color of the segment, or None to automatically choose the color
     pie_index: The index of the pie that will receive the new segment.
+      By default, the chart has one pie (pie #0); use the AddPie method to
+      add more pies.
     """
     if isinstance(size, Segment):
       warnings.warn("AddSegment(segment) is deprecated.  Use AddSegment(size, "
@@ -135,10 +149,22 @@ class PieChart(common.BaseChart):
     assert segment.size >= 0
     if pie_index == 0 and not self.data:
       # Create the default pie
-      self.data.append(list())
+      self.data.append([])
+    assert (pie_index >= 0 and pie_index < len(self.data))
     self.data[pie_index].append(segment)
     return segment
 
+  def AddSeries(self, points, color=None, style=None, markers=None, label=None):
+    """DEPRECATED
+
+    Add a new segment to the chart and return it.
+
+    The segment must contain exactly one data point; all parameters
+    other than color and label are ignored.
+    """
+    warnings.warn('PieChart.AddSeries is deprecated.  Call AddSegment or '
+                  'AddSegments instead.', DeprecationWarning)
+    return self.AddSegment(Segment(points[0], color=color, label=label))
 
   def SetColors(self, *colors):
     """Change the colors of this chart to the specified list of colors.

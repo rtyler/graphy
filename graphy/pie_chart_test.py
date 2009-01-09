@@ -65,6 +65,19 @@ class PieChartTest(graphy_test.GraphyTest):
     chart.AddSegment(1, 'label', '0000FF')
     self.assertEquals('label', chart.data[0][0].label)
     self.assertEquals('0000FF', chart.data[0][0].color)
+    
+  # TODO: remove once the deprecation warning is removed
+  def testAddSegmentsOrder(self):
+    chart = pie_chart.PieChart()
+    # Deprecated approach
+    warnings.filterwarnings('error')
+    self.assertRaises(DeprecationWarning, chart.AddSegments, [1],
+      ['0000FF'], ['label'])
+    # New order
+    warnings.filterwarnings('ignore')
+    chart.AddSegments([1], ['label'], ['0000FF'])
+    self.assertEqual('label', chart.data[0][0].label)
+    self.assertEqual('0000FF', chart.data[0][0].color)
 
   def testAddPie(self):
     chart = pie_chart.PieChart()
