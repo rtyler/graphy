@@ -83,8 +83,10 @@ class PieChart(common.BaseChart):
               TODO: Allow the user to pass in None as one of
               the labels in order to skip that label.
       colors: A list of colors for the pie segments, as hex strings
-              (f.ex. '0000ff' for blue). Missing colors will be
-              automatically interpolated by the server.
+              (f.ex. '0000ff' for blue). If there are less colors than pie
+              segments, the Google Chart API will attempt to produce a smooth
+              color transition between segments by spreading the colors across
+              them.
     """
     super(PieChart, self).__init__()
     self.formatters = []
@@ -133,9 +135,9 @@ class PieChart(common.BaseChart):
   def AddSegment(self, size, label=None, color=None, pie_index=0):
     """Add a pie segment to this chart, and return the segment.
 
-    size: The size of the segment
-    label: The label for the segment
-    color: The color of the segment, or None to automatically choose the color
+    size: The size of the segment.
+    label: The label for the segment.
+    color: The color of the segment, or None to automatically choose the color.
     pie_index: The index of the pie that will receive the new segment.
       By default, the chart has one pie (pie #0); use the AddPie method to
       add more pies.

@@ -368,18 +368,19 @@ class PieChartEncoder(BaseChartEncoder):
     super(PieChartEncoder, self).__init__(chart)
     self.is3d = is3d
     self.angle = None
-    
+
   def _GetFormatters(self):
     """Add a formatter for the chart angle."""
     formatters = super(PieChartEncoder, self)._GetFormatters()
     formatters.append(self._GetAngleParams)
-    return formatters  
+    return formatters
 
   def _GetType(self, chart):
     if len(chart.data) > 1:
       if self.is3d:
-        warnings.warn('3d charts with more than one pie not supported',
-                      RuntimeWarning, stacklevel=2)
+        warnings.warn(
+            '3d charts with more than one pie not supported; rendering in 2d',
+            RuntimeWarning, stacklevel=2)
       chart_type = 'pc'
     else:
       if self.is3d:
@@ -421,10 +422,9 @@ class PieChartEncoder(BaseChartEncoder):
           if segment and segment.color:
             colors.append(segment.color)
     return util.JoinLists(color = colors)
-  
+
   def _GetAngleParams(self, chart):
     """If the user specified an angle, add it to the params."""
     if self.angle:
       return {'chp' : str(self.angle)}
-    else:
-      return {}
+    return {}

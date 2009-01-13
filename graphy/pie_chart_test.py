@@ -63,9 +63,9 @@ class PieChartTest(graphy_test.GraphyTest):
 
     # New order
     chart.AddSegment(1, 'label', '0000FF')
-    self.assertEquals('label', chart.data[0][0].label)
-    self.assertEquals('0000FF', chart.data[0][0].color)
-    
+    self.assertEqual('label', chart.data[0][0].label)
+    self.assertEqual('0000FF', chart.data[0][0].color)
+
   # TODO: remove once the deprecation warning is removed
   def testAddSegmentsOrder(self):
     chart = pie_chart.PieChart()
@@ -81,29 +81,29 @@ class PieChartTest(graphy_test.GraphyTest):
 
   def testAddPie(self):
     chart = pie_chart.PieChart()
-    idx = chart.AddPie([1], ['A'], ['ff0000'])
-    self.assertEquals(idx, 0)
-    self.assertEquals(len(chart.data), 1)
-    self.assertEquals(len(chart.data[0]), 1)
-    self.assertEquals(chart.data[0][0].size, 1)
-    idx = chart.AddPie([2], ['B'], ['0000ff'])
-    self.assertEquals(idx, 1)
-    self.assertEquals(len(chart.data), 2)
-    self.assertEquals(len(chart.data[0]), 1)
-    self.assertEquals(chart.data[0][0].size, 1)
-    self.assertEquals(len(chart.data[1]), 1)
-    self.assertEquals(chart.data[1][0].size, 2)
-    
-  def testAddSegmentToPie(self):    
+    i = chart.AddPie([1], ['A'], ['ff0000'])
+    self.assertEqual(i, 0)
+    self.assertEqual(len(chart.data), 1)
+    self.assertEqual(len(chart.data[0]), 1)
+    self.assertEqual(chart.data[0][0].size, 1)
+    i = chart.AddPie([2], ['B'], ['0000ff'])
+    self.assertEqual(i, 1)
+    self.assertEqual(len(chart.data), 2)
+    self.assertEqual(len(chart.data[0]), 1)
+    self.assertEqual(chart.data[0][0].size, 1)
+    self.assertEqual(len(chart.data[1]), 1)
+    self.assertEqual(chart.data[1][0].size, 2)
+
+  def testAddSegmentToPie(self):
     chart = pie_chart.PieChart()
     chart.AddPie([1], ['A'], ['ff0000'])
     chart.AddPie([2], ['B'], ['0000ff'])
     chart.AddSegment([10], ['AA'])
-    self.assertEquals(len(chart.data[0]), 2)
-    self.assertEquals(len(chart.data[1]), 1)
+    self.assertEqual(len(chart.data[0]), 2)
+    self.assertEqual(len(chart.data[1]), 1)
     chart.AddSegment([20], ['BB'], pie_index=1)
-    self.assertEquals(len(chart.data[0]), 2)
-    self.assertEquals(len(chart.data[1]), 2)
+    self.assertEqual(len(chart.data[0]), 2)
+    self.assertEqual(len(chart.data[1]), 2)
 
 
 if __name__ == '__main__':
