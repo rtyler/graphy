@@ -36,13 +36,13 @@ class LineChartTest(graphy_test.GraphyTest):
   def testAddSeries(self):
     warnings.filterwarnings('ignore')
     chart = line_chart.LineChart()
-    chart.AddSeries(points=[1, 2, 3], style=line_chart.LineStyle.solid,
+    chart.AddSeries(points=[1, 2, 3], style=line_chart.LineStyle.solid(),
                     markers='markers', label='label')
     series = chart.data[0]
     self.assertEqual(series.data, [1, 2, 3])
-    self.assertEqual(series.style.width, line_chart.LineStyle.solid.width)
-    self.assertEqual(series.style.on, line_chart.LineStyle.solid.on)
-    self.assertEqual(series.style.off, line_chart.LineStyle.solid.off)
+    self.assertEqual(series.style.width, line_chart.LineStyle.solid().width)
+    self.assertEqual(series.style.on, line_chart.LineStyle.solid().on)
+    self.assertEqual(series.style.off, line_chart.LineStyle.solid().off)
     self.assertEqual(series.markers, 'markers')
     self.assertEqual(series.label, 'label')
 
@@ -62,16 +62,36 @@ class LineChartTest(graphy_test.GraphyTest):
     self.assertEqual('label', chart.data[0].label)
     self.assertEqual([x], chart.data[0].markers)
     self.assertEqual('color', chart.data[0].style.color)
+       
 
 class LineStyleTest(graphy_test.GraphyTest):
 
+  def tearDown(self):
+    warnings.resetwarnings()
+
   def testPresets(self):
     """Test selected traits from the preset line styles."""
-    self.assertEqual(0, line_chart.LineStyle.solid.off)
-    self.assert_(line_chart.LineStyle.dashed.off > 0)
-    self.assert_(line_chart.LineStyle.solid.width <
-                 line_chart.LineStyle.thick_solid.width)
-
+    self.assertEqual(0, line_chart.LineStyle.solid().off)
+    self.assert_(line_chart.LineStyle.dashed().off > 0)
+    self.assert_(line_chart.LineStyle.solid().width <
+                 line_chart.LineStyle.thick_solid().width)
+    
+  def testLineStyleByValueGivesWarning(self):
+    """Using LineStyle.foo as a value should throw a deprecation warning"""
+    warnings.filterwarnings('error')    
+    self.assertRaises(DeprecationWarning, common.DataSeries, [],
+                      style=line_chart.LineStyle.solid)
+    series = common.DataSeries([])
+    def _TestAssignment():
+      series.style = line_chart.LineStyle.solid
+    self.assertRaises(DeprecationWarning, _TestAssignment)
+    warnings.filterwarnings('ignore')
+    series.style = line_chart.LineStyle.solid
+    warnings.resetwarnings()
+    self.assertEqual(1, series.style.width)    
+    self.assertEqual(1, series.style.on)
+    self.assertEqual(0, series.style.off)
+    
 
 if __name__ == '__main__':
   graphy_test.main()
